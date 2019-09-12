@@ -257,19 +257,22 @@ for epoch in range(1000):
         input = input.to(device)
         target = target.to(device)
 
-        # print("Input: ", input.shape)
-        # print("Target: ", target.shape)
-
-        output = net(input)[0]
-
-        # print("Output:", output.shape)
-
-        loss = torch.sqrt(criterion(output[:, 0, :, :], target))
-        print("Loss:", loss)
-        print("#" * 20)
-
         optimizer.zero_grad()
-        loss.backward()
+
+        with torch.set_grad_enabled(True):
+            # print("Input: ", input.shape)
+            # print("Target: ", target.shape)
+
+            output = net(input)[0]
+
+            # print("Output:", output.shape)
+
+            loss = torch.sqrt(criterion(output[:, 0, :, :], target))
+            print("Loss:", loss)
+            print("#" * 20)
+
+            loss.backward()
+            optimizer.step()
 
         for batch in validation_generator:
             net.eval()
