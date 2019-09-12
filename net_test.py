@@ -11,9 +11,8 @@ import torch.optim as optim
 
 import os, glob
 import torch
-from skimage import io, transform
+
 import numpy as np
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import cv2
