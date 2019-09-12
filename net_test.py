@@ -123,7 +123,7 @@ class mono_net(nn.Module):  # vgg version
         upconv_4 = self.upconv_4(iconv5_up)  # 128x32x64
         concat_4 = torch.cat([upconv_4, conv_3], 1)  # 256x32x64
         iconv_4 = self.conv_4(concat_4)  # 128x32x64
-        self.disp4 = 0.3 * self.get_disp4(iconv_4)  # 2x32x64
+        self.disp4 = 1.0 * self.get_disp4(iconv_4)  # 2x32x64
         udisp4 = self.upsample_(self.disp4, 2)  # 2x64x128
 
         iconv4_up = self.upsample_(iconv_4, 2)  # 128x64x128
@@ -131,21 +131,21 @@ class mono_net(nn.Module):  # vgg version
         concat_3 = torch.cat([upconv_3, conv_2, udisp4], 1)  # 130x64x128
         # print("concat_3" * 10, concat_3.shape)
         iconv_3 = self.conv_3(concat_3)  # 64x64x128
-        self.disp3 = 0.3 * self.get_disp3(iconv_3)  # 2x64x128
+        self.disp3 = 1.0 * self.get_disp3(iconv_3)  # 2x64x128
         udisp3 = self.upsample_(self.disp3, 2)  # 2x128x256
 
         iconv3_up = self.upsample_(iconv_3, 2)  # 64x128x256
         upconv_2 = self.upconv_2(iconv3_up)  # 32x128x256
         concat_2 = torch.cat([upconv_2, conv_1, udisp3], 1)  # 66x128x256
         iconv_2 = self.conv_2(concat_2)  # 32x128x256
-        self.disp2 = 0.3 * self.get_disp2(iconv_2)  # 2x128x256
+        self.disp2 = 1.0 * self.get_disp2(iconv_2)  # 2x128x256
         udisp2 = self.upsample_(self.disp2, 2)  # 2x256x512
 
         iconv2_up = self.upsample_(iconv_2, 2)  # 32x256x512
         upconv_1 = self.upconv_1(iconv2_up)  # 16x256x512
         concat_1 = torch.cat([upconv_1, udisp2], 1)  # 18x256x512
         iconv_1 = self.conv_1(concat_1)  # 16x256x512
-        self.disp1 = 0.3 * self.get_disp1(iconv_1)  # 2x256x512
+        self.disp1 = 1.0 * self.get_disp1(iconv_1)  # 2x256x512
 
         return [self.disp1, self.disp2, self.disp3, self.disp4]
 
@@ -233,7 +233,10 @@ for param in net.parameters():
 lr = 0.0001
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
-criterion = nn.MSELoss()
+#criterion = nn.MSELoss()
+
+#criterion = nn.CrossEntropyLoss()
+
 
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino_test/')
