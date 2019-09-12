@@ -222,6 +222,11 @@ class EpiDataset(Dataset):
 
 
 net = mono_net(16,2)
+
+device = ("cuda:0" if torch.cuda.is_available() else "cpu")
+print("DEVICE:" ,device)
+net = net.to(device)
+
 for param in net.parameters():
     param.requires_grad = True
 
@@ -253,6 +258,9 @@ for epoch in range(100):
 
         input = batch['rgb']
         target = batch['depth']
+
+        input = input.to(device)
+        target = target.to(device)
 
         print("Input: ",input.shape)
         print("Target: ", target.shape)
