@@ -5,6 +5,7 @@ import numpy as np
 import os
 import glob
 import mathutils
+import uuid
 
 PIECE_BASE_NAME = 'Piece'
 
@@ -211,7 +212,7 @@ for j in range(32):
     nodes = tree.nodes
     links = tree.links
     render = nodes["Render Layers"]
-    out_folder = output_path.format(str(j).zfill(5))
+    out_folder = output_path.format(uuid.uuid4().hex)
 
     depth_node = createOutputNode(output_path=out_folder,format='OPEN_EXR')
     rgb_node = createOutputNode(output_path=out_folder,format='JPEG')
