@@ -284,8 +284,7 @@ for epoch in range(100):
             target = batch['depth'].cpu().numpy()
 
             input = input.to(device)
-            target = target.to(device)
-            
+
             output = net(input)[0].detach().cpu().numpy()
 
             map_gt = (target[0]*255).astype(np.uint8)
