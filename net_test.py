@@ -267,7 +267,10 @@ for epoch in range(1000):
 
             # print("Output:", output.shape)
 
-            loss = torch.sqrt(criterion(output[:, 0, :, :], target))
+            #loss = torch.sqrt(criterion(output[:, 0, :, :], target))
+
+            loss = torch.mean(torch.abs(output[:, 0, :, :] - target))
+
             print("Loss:", loss)
 
             loss.backward()
