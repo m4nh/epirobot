@@ -289,9 +289,8 @@ for epoch in range(100):
             map_pred = (output[0][0]*255).astype(np.uint8)
 
             print("SHAPE", map_pred.shape)
-            cv2.imshow("gt", map_gt)
-            cv2.imshow("pred", map_pred)
-            cv2.waitKey(100)
+            cv2.imwrite("/tmp/gt.png", map_gt)
+            cv2.imshow("/tmp/pred.png", map_pred)
             break
 
 
