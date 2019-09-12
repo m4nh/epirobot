@@ -247,6 +247,13 @@ validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=False, num
 for epoch in range(1000):
     # while True:
     print("EPOCH:", epoch)
+
+    if epoch % 150 == 0 and epoch > 0:
+        lr = lr * 0.1
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+        print("LEANING RAT CHANGED", "!" * 20)
+
     for batch in training_generator:
 
         # TRAINING
