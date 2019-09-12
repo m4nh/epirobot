@@ -269,27 +269,28 @@ for epoch in range(1000):
 
             loss = torch.sqrt(criterion(output[:, 0, :, :], target))
             print("Loss:", loss)
-            print("#" * 20)
 
             loss.backward()
             optimizer.step()
 
-        for batch in validation_generator:
-            net.eval()
-            input = batch['rgb']
-            target = batch['depth'].cpu().numpy()
+    for batch in validation_generator:
+        print("∞"*20)
+        print("TEST "*20)
+        net.eval()
+        input = batch['rgb']
+        target = batch['depth'].cpu().numpy()
 
-            input = input.to(device)
+        input = input.to(device)
 
-            output = net(input)[0].detach().cpu().numpy()
+        output = net(input)[0].detach().cpu().numpy()
 
-            map_gt = (target[0] * 255).astype(np.uint8)
-            map_pred = (output[0][0] * 255).astype(np.uint8)
+        map_gt = (target[0] * 255).astype(np.uint8)
+        map_pred = (output[0][0] * 255).astype(np.uint8)
 
-            # print("SHAPE", map_pred.shape)
-            cv2.imwrite("/tmp/gt.png", map_gt)
-            cv2.imwrite("/tmp/pred.png", map_pred)
-            break
+        # print("SHAPE", map_pred.shape)
+        cv2.imwrite("/tmp/gt.png", map_gt)
+        cv2.imwrite("/tmp/pred.png", map_pred)
+        break
 
     #
     # # d = dataset[2]
