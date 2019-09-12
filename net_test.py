@@ -292,7 +292,7 @@ for epoch in range(100):
 
             print("SHAPE", map_pred.shape)
             cv2.imwrite("/tmp/gt.png", map_gt)
-            cv2.imshow("/tmp/pred.png", map_pred)
+            cv2.imwrite("/tmp/pred.png", map_pred)
             break
 
 
