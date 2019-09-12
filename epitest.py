@@ -52,7 +52,7 @@ def epiRow(y, max_stack = 32):
     cv2.imshow("epi_or", cv2.applyColorMap(orientation,cv2.COLORMAP_PARULA))
     print(stack.shape)
 
-def epiSlice(y, max_stack = 32):
+def epiSlice(y, max_stack = 8):
     stack = None
 
     for index, img in enumerate(images):
@@ -89,8 +89,10 @@ def mouseMove(event, x, y, flags, param):
 
 
 
-folder = '/private/tmp/epirobot2/'
-images = list(sorted(glob.glob(os.path.join(folder, '*.png'))))
+#folder = '/private/tmp/epirobot2/'
+#folder = '/Users/daniele/Downloads/benchmark/training/sideboard'
+folder = '/private/tmp/gino/frame_00001'
+images = list(sorted(glob.glob(os.path.join(folder, '*.jpg'))))
 
 images = list(map(cv2.imread, images))
 
