@@ -186,13 +186,13 @@ class EpiDataset(Dataset):
             # gray = B * imgc[:, :, 2] + G * imgc[:, :, 1] + R * imgc[:, :, 0]  # cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             # gray = gray.astype(np.uint8)
 
-            gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             gray = np.expand_dims(gray, 0)
             # print(gray.shape)
             if stack is None:
                 stack = gray
             else:
-                #stack = np.dstack((stack, gray))
+                # stack = np.dstack((stack, gray))
                 stack = np.vstack((stack, gray))
 
         stack = stack.astype(np.float32)
@@ -221,10 +221,10 @@ class EpiDataset(Dataset):
         return sample
 
 
-net = mono_net(16,2)
+net = mono_net(16, 2)
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
-print("DEVICE:" ,device)
+print("DEVICE:", device)
 net = net.to(device)
 
 for param in net.parameters():
@@ -235,26 +235,21 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 
 criterion = nn.MSELoss()
 
-
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino_test/')
-
 
 training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=0, drop_last=True)
 
-
-for epoch in range(100):
-    #while True:
-    print("EPOCH:",epoch
-          )
+for epoch in range(1000):
+    # while True:
+    print("EPOCH:", epoch)
     for batch in training_generator:
 
-
-        #TRAINING
+        # TRAINING
         net.train()
 
-        print(batch['rgb'].shape)
+        # print(batch['rgb'].shape)
 
         input = batch['rgb']
         target = batch['depth']
@@ -262,23 +257,21 @@ for epoch in range(100):
         input = input.to(device)
         target = target.to(device)
 
-        print("Input: ",input.shape)
-        print("Target: ", target.shape)
+        # print("Input: ", input.shape)
+        # print("Target: ", target.shape)
 
         output = net(input)[0]
 
-        print("Output:", output.shape)
+        # print("Output:", output.shape)
 
         loss = torch.sqrt(criterion(output[:, 0, :, :], target))
         print("Loss:", loss)
-        print("#"*20)
+        print("#" * 20)
 
         optimizer.zero_grad()
         loss.backward()
 
-
         for batch in validation_generator:
-
             net.eval()
             input = batch['rgb']
             target = batch['depth'].cpu().numpy()
@@ -287,17 +280,13 @@ for epoch in range(100):
 
             output = net(input)[0].detach().cpu().numpy()
 
-            map_gt = (target[0]*255).astype(np.uint8)
-            map_pred = (output[0][0]*255).astype(np.uint8)
+            map_gt = (target[0] * 255).astype(np.uint8)
+            map_pred = (output[0][0] * 255).astype(np.uint8)
 
-            print("SHAPE", map_pred.shape)
+            # print("SHAPE", map_pred.shape)
             cv2.imwrite("/tmp/gt.png", map_gt)
             cv2.imwrite("/tmp/pred.png", map_pred)
             break
-
-
-
-
 
     #
     # # d = dataset[2]
