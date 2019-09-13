@@ -24,10 +24,11 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.conv_1 = self.convblock(16,32)
-        self.conv_2 = self.convblock(32, 64)
-        self.conv_3 = self.convblock(64, 128)
-        self.conv_4 = self.lastblock(128, 1)
+        self.layer_1 = self.convblock(16,64)
+        self.layer_2 = self.convblock(64, 128)
+        self.layer_3 = self.convblock(128, 256)
+        self.layer_4 = self.convblock(256, 512)
+        self.layer_5 = self.lastblock(512, 1)
 
         # self.downconv_2 = self.conv_down_block(32, 64, 3)
         # self.downconv_3 = self.conv_down_block(64, 128, 3)
@@ -184,16 +185,11 @@ class mono_net(nn.Module):  # vgg version
     def forward(self, x):
         # 3x256x512
 
-        x = self.conv_1(x)  # 32x128x256
-        # print("CONV1", x.shape)
-
-        x = self.conv_2(x)  # 32x128x256
-        # print("CONV2", x.shape)
-
-        x = self.conv_3(x)  # 32x128x256
-        # print("CONV3", x.shape)
-
-        x = self.conv_4(x)  # 32x128x256
+        x = self.layer_1(x)  # 32x128x256
+        x = self.layer_2(x)  # 32x128x256
+        x = self.layer_3(x)  # 32x128x256
+        x = self.layer_4(x)  # 32x128x256
+        x = self.layer_5(x)  # 32x128x256
         # print("CONV4", x.shape)
 
         return x
@@ -349,6 +345,14 @@ validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_
 
 for epoch in range(1000):
 
+    print("EPOCH", epoch)
+
+    if epoch % 50 == 0 and epoch > 0:
+        lr = lr * 0.9
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+        print("LEANING RAT CHANGED", "!" * 20)
+        
     for batch in training_generator:
         net.train()
         optimizer.zero_grad()
