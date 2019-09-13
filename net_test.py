@@ -64,7 +64,7 @@ class mono_net(nn.Module):  # vgg version
 
     def conv_down_block3D(self, in_dim, out_dim, kernal):
         conv_down_block = []
-        conv_down_block += [nn.Conv3d(in_dim, 1, kernel_size=kernal, stride=1, padding=int((kernal - 1) / 2)),
+        conv_down_block += [nn.Conv3d(in_dim, out_dim, kernel_size=kernal, stride=4, padding=int((kernal - 1) / 2)),
                             nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h,w
         # conv_down_block += [nn.Conv3d(out_dim, out_dim, kernel_size=kernal, stride=2, padding=int((kernal - 1) / 2)),
         #                     nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
