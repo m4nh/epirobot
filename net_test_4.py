@@ -329,8 +329,8 @@ criterion = nn.L1Loss()
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino/')
 
-training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=True)
-validation_generator = DataLoader(dataset_test, batch_size=8, shuffle=True, num_workers=0, drop_last=True)
+training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
+validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 
 for epoch in range(1000):
 
@@ -372,17 +372,17 @@ for epoch in range(1000):
 
             # print("OUTPUT", output.shape)
 
-            output_background = output * mask
-            target_background = target * mask
+            # output_background = output * mask
+            # target_background = target * mask
+            #
+            # output_foreground = output * (1.0 - mask)
+            # target_foreground = target * (1.0 - mask)
+            #
+            # loss1 = criterion(output_background, target_background)
+            # loss2 = criterion(output_foreground, target_foreground)
+            # loss = loss1 + 1000 * loss2
 
-            output_foreground = output * (1.0 - mask)
-            target_foreground = target * (1.0 - mask)
-
-            loss1 = criterion(output_background, target_background)
-            loss2 = criterion(output_foreground, target_foreground)
-            loss = loss1 + 1000 * loss2
-
-            # loss = criterion(output, target)
+            loss = criterion(output, target)
 
             loss.backward()
             optimizer.step()
