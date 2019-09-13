@@ -361,21 +361,22 @@ for epoch in range(1000):
             optimizer.step()
 
         #
-        #     for batch in validation_generator:
-        #         print("∞" * 20)
-        #         print("TEST " * 20)
-        #         net.eval()
-        #         input = batch['rgb']
-        #         target = batch['depth'].cpu().numpy()
-        #
-        #         input = input.to(device)
-        #
-        #         output = net(input)[0].detach().cpu().numpy()
-        #
-        #         map_gt = (target[0][0] * 255).astype(np.uint8)
-        #         map_pred = (output[0][0] * 255).astype(np.uint8)
-        #
-        #         # print("SHAPE", map_pred.shape)
-        #         cv2.imwrite("/tmp/gt.png", map_gt)
-        #         cv2.imwrite("/tmp/pred.png", map_pred)
-        #         break
+        for batch in validation_generator:
+            print("∞" * 20)
+            print("TEST " * 20)
+            net.eval()
+            input = batch['rgb']
+            target = batch['depth'].cpu().numpy()
+
+            input = input.to(device)
+            input = input.permute(0, 2, 1, 3)
+            
+            output = net(input)[0].detach().cpu().numpy()
+
+            map_gt = (target[0][0] * 255).astype(np.uint8)
+            map_pred = (output[0][0] * 255).astype(np.uint8)
+
+            # print("SHAPE", map_pred.shape)
+            cv2.imwrite("/tmp/gt.png", map_gt)
+            cv2.imwrite("/tmp/pred.png", map_pred)
+            break
