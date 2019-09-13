@@ -24,9 +24,9 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.layer_1 = self.convblock(16, 32, 11)
-        self.layer_2 = self.convblock(32, 64, 7)
-        self.layer_3 = self.convblock(64, 128, 5)
+        self.layer_1 = self.convblock(16, 32, 5)
+        self.layer_2 = self.convblock(32, 64, 3)
+        self.layer_3 = self.convblock(64, 128, 3)
         # self.layer_4 = self.convblock(128, 256, 3)
         # self.layer_5 = self.convblock(256, 256, 3)
         self.layer_4 = self.lastblock(128, 1)
@@ -93,7 +93,7 @@ class mono_net(nn.Module):  # vgg version
         block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
         block += [nn.ELU()]
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
-        # block += [nn.Sigmoid()]
+        block += [nn.Sigmoid()]
 
         return nn.Sequential(*block)
 
