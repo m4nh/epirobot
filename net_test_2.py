@@ -289,7 +289,7 @@ class EpiDataset(Dataset):
 
         depth = cv2.imread(images[0], 2)
 
-        depth = depth / np.max(depth)
+        depth = depth / 6.0
 
         depth = np.expand_dims(depth, 0)
         return depth
