@@ -367,6 +367,7 @@ for epoch in range(1000):
         print("LEANING RAT CHANGED", "!" * 20)
 
     cumulative_loss = 0.0
+    counter = 0.0
     for batch in training_generator:
         net.train()
         optimizer.zero_grad()
@@ -391,7 +392,8 @@ for epoch in range(1000):
             optimizer.step()
 
             cumulative_loss += loss.detach().cpu().numpy()
-        print("Loss",cumulative_loss)
+            counter += 1.0
+        print("Loss",cumulative_loss/counter)
 
         #
     for batch in validation_generator:
