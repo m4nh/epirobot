@@ -185,16 +185,16 @@ class mono_net(nn.Module):  # vgg version
         # 3x256x512
 
         x = self.conv_1(x)  # 32x128x256
-        print("CONV1", x.shape)
+        # print("CONV1", x.shape)
 
         x = self.conv_2(x)  # 32x128x256
-        print("CONV2", x.shape)
+        # print("CONV2", x.shape)
 
         x = self.conv_3(x)  # 32x128x256
-        print("CONV3", x.shape)
+        # print("CONV3", x.shape)
 
         x = self.conv_4(x)  # 32x128x256
-        print("CONV4", x.shape)
+        # print("CONV4", x.shape)
 
         return x
         # conv_2 = self.downconv_2(conv_1)  # 64x64x128
