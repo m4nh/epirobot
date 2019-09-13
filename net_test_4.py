@@ -329,8 +329,8 @@ criterion = nn.L1Loss()
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino/')
 
-training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
-validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
+training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=True)
+validation_generator = DataLoader(dataset_test, batch_size=8, shuffle=True, num_workers=0, drop_last=True)
 
 for epoch in range(1000):
 
@@ -344,7 +344,7 @@ for epoch in range(1000):
 
     cumulative_loss = 0.0
     counter = 0.0
-    for batch in training_generator:
+    for index,batch in enumerate(training_generator):
         net.train()
         optimizer.zero_grad()
 
@@ -389,6 +389,7 @@ for epoch in range(1000):
 
             cumulative_loss += loss.detach().cpu().numpy()
             counter += 1.0
+            print("Batch: {}/{}".format(index, len(training_generator)))
 
     print("Loss", cumulative_loss / counter)
 

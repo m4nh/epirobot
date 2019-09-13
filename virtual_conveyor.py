@@ -86,7 +86,7 @@ def randomizeCameraPosition():
     camera.location = (
         0.0,
         0.0,
-        random.uniform(0.3,0.5)
+        random.uniform(0.2,0.7)
     )
 
 def randomizeLight():
