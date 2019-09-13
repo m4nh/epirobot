@@ -317,8 +317,9 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.001
-optimizer = optim.Adam(net.parameters(), lr=lr)
+lr = 0.0001
+# optimizer = optim.Adam(net.parameters(), lr=lr)
+optimizer = optim.RMSprop(net.parameters(), lr=lr)
 
 # criterion = nn.MSELoss()
 
@@ -335,7 +336,7 @@ for epoch in range(1000):
 
     print("EPOCH", epoch)
 
-    if epoch % 100 == 0 and epoch > 0:
+    if epoch % 200 == 0 and epoch > 0:
         lr = lr * 0.5
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
