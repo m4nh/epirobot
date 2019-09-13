@@ -202,7 +202,9 @@ class EpiDataset(Dataset):
             gray = gray.astype(np.uint8)
 
             # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            # gray = np.expand_dims(gray, 0)
+
+
+            gray = np.expand_dims(gray, 0)
             # print(gray.shape)
             if stack is None:
                 stack = gray
