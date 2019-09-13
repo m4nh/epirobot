@@ -24,11 +24,17 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.layer_1 = self.convblock(16,64)
-        self.layer_2 = self.convblock(64, 128)
-        self.layer_3 = self.convblock(128, 256)
-        self.layer_4 = self.convblock(256, 512)
-        self.layer_5 = self.lastblock(512, 1)
+        self.layer_1 = self.convblock(16, 32, 11)
+        self.layer_2 = self.convblock(32, 64, 7)
+        self.layer_3 = self.convblock(64, 128, 5)
+        # self.layer_4 = self.convblock(128, 256, 3)
+        # self.layer_5 = self.convblock(256, 256, 3)
+        self.layer_4 = self.lastblock(128, 1,3)
+
+        # self.layer_2 = self.convblock(64, 128)
+        # self.layer_3 = self.convblock(128, 256)
+        # self.layer_4 = self.convblock(256, 512)
+        # self.layer_5 = self.lastblock(512, 1)
 
         # self.downconv_2 = self.conv_down_block(32, 64, 3)
         # self.downconv_3 = self.conv_down_block(64, 128, 3)
@@ -70,12 +76,12 @@ class mono_net(nn.Module):  # vgg version
     # seq.add(BatchNormalization(axis=-1, name='S1_BN%d' % (i)))
     # seq.add(Activation('relu', name='S1_relu2%d' % (i)))
 
-    def convblock(self, in_dim, out_dim):
+    def convblock(self, in_dim, out_dim, kernel=3):
         block = []
 
-        block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.Conv2d(in_dim, out_dim, kernel_size=kernel, stride=1, padding=int((kernel - 1) / 2))]
         block += [nn.ELU()]
-        block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.Conv2d(out_dim, out_dim, kernel_size=kernel, stride=1, padding=int((kernel - 1) / 2))]
         block += [nn.BatchNorm2d(out_dim)]
         block += [nn.ELU()]
 
@@ -185,12 +191,19 @@ class mono_net(nn.Module):  # vgg version
     def forward(self, x):
         # 3x256x512
 
-        x = self.layer_1(x)  # 32x128x256
-        x = self.layer_2(x)  # 32x128x256
-        x = self.layer_3(x)  # 32x128x256
-        x = self.layer_4(x)  # 32x128x256
-        x = self.layer_5(x)  # 32x128x256
-        # print("CONV4", x.shape)
+
+        x = self.layer_1(x)
+        print("L:", x.shape)
+
+        x = self.layer_2(x)
+        print("L:", x.shape)
+
+        x = self.layer_3(x)
+        print("L:", x.shape)
+
+        x = self.layer_4(x)
+        print("L:", x.shape)
+
 
         return x
         # conv_2 = self.downconv_2(conv_1)  # 64x64x128
