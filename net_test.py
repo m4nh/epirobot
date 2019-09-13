@@ -57,7 +57,7 @@ class mono_net(nn.Module):  # vgg version
         conv_down_block = []
         conv_down_block += [nn.Conv2d(in_dim, out_dim, kernel_size=kernal, stride=1, padding=int((kernal - 1) / 2)),
                             nn.BatchNorm2d(out_dim), nn.ELU()]  # h,w -> h,w
-        conv_down_block += [nn.Conv2d(out_dim, out_dim, kernel_size=kernal, stride=2, padding=int((kernal - 1) / 2)),
+        conv_down_block += [nn.Conv2d(out_dim, out_dim, kernel_size=kernal, stride=4, padding=int((kernal - 1) / 2)),
                             nn.BatchNorm2d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
 
         return nn.Sequential(*conv_down_block)
