@@ -321,14 +321,14 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.0001
+lr = 0.001
 optimizer = optim.Adam(net.parameters(), lr=lr)
 # optimizer = optim.RMSprop(net.parameters(), lr=lr)
 
 # criterion = nn.MSELoss()
 
 # criterion = nn.CrossEntropyLoss()
-criterion = nn.L1Loss()
+criterion = nn.L2Loss()
 
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino/')
@@ -336,12 +336,12 @@ dataset_test = EpiDataset(folder='/tmp/gino/')
 training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 
-for epoch in range(1000):
+for epoch in range(5000):
 
     print("EPOCH", epoch)
 
     if epoch % 200 == 0 and epoch > 0:
-        lr = lr * 0.5
+        lr = lr * 0.8
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
