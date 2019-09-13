@@ -45,7 +45,7 @@ class mono_net(nn.Module):  # vgg version
 
         block += [nn.Conv3d(in_dim, out_dim, kernel_size=(depth_dim, kernel, kernel), stride=stride,
                             padding=int((kernel - 1) / 2))]
-        block += [nn.ELU()]
+        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm3d(out_dim)]
 
         return nn.Sequential(*block)
@@ -55,8 +55,11 @@ class mono_net(nn.Module):  # vgg version
 
         block += [nn.Conv2d(in_dim, out_dim, kernel_size=(kernel, kernel), stride=stride,
                             padding=int((kernel - 1) / 2))]
-        block += [nn.ELU()]
+        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm2d(out_dim)]
+        block += [nn.Conv2d(out_dim, out_dim, kernel_size=(kernel, kernel), stride=1,
+                            padding=int((kernel - 1) / 2))]
+        block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
 
@@ -65,7 +68,7 @@ class mono_net(nn.Module):  # vgg version
 
         block += [nn.Conv2d(in_dim, out_dim, kernel_size=(kernel, kernel), stride=stride,
                             padding=int((kernel - 1) / 2))]
-        block += [nn.ELU()]
+        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm2d(out_dim)]
 
         return nn.Sequential(*block)
@@ -74,7 +77,8 @@ class mono_net(nn.Module):  # vgg version
         block = []
 
         block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
-        block += [nn.ELU()]
+        block += [nn.LeakyReLU()]
+        block += [nn.BatchNorm2d(out_dim)]
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
         block += [nn.Sigmoid()]
 
