@@ -29,7 +29,7 @@ class mono_net(nn.Module):  # vgg version
         self.layer_3 = self.convblock(64, 128, 5)
         # self.layer_4 = self.convblock(128, 256, 3)
         # self.layer_5 = self.convblock(256, 256, 3)
-        self.layer_4 = self.lastblock(128, 1,3)
+        self.layer_4 = self.lastblock(128, 1)
 
         # self.layer_2 = self.convblock(64, 128)
         # self.layer_3 = self.convblock(128, 256)
