@@ -351,7 +351,7 @@ for epoch in range(1000):
 
         output = net(input)[0].detach().cpu().numpy()
 
-        map_gt = (target[0] * 255).astype(np.uint8)
+        map_gt = (target[0][0] * 255).astype(np.uint8)
         map_pred = (output[0][0] * 255).astype(np.uint8)
 
         # print("SHAPE", map_pred.shape)
