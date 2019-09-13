@@ -24,18 +24,22 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.downconv_1 = self.conv_down_block(256, 32, 3)
-        self.downconv_2 = self.conv_down_block(32, 64, 3)
-        self.downconv_3 = self.conv_down_block(64, 128, 3)
+        self.conv_1 = self.convblock(16,32)
+        self.conv_2 = self.convblock(32, 64)
+        self.conv_3 = self.convblock(64, 128)
+        self.conv_4 = self.lastblock(128, 1)
+
+        # self.downconv_2 = self.conv_down_block(32, 64, 3)
+        # self.downconv_3 = self.conv_down_block(64, 128, 3)
         # self.downconv_4 = self.conv_down_block(128, 256, 3)
         # self.downconv_5 = self.conv_down_block(256, 512, 3)
         # self.downconv_6 = self.conv_down_block(512, 512, 3)
         # self.downconv_7 = self.conv_down_block(512, 512, 3)
+        # #
+        # self.upconv_3 = self.conv_up_block(2, 2)
+        # self.upconv_2 = self.conv_up_block(2, 1)
         #
-        self.upconv_3 = self.conv_up_block(2, 2)
-        self.upconv_2 = self.conv_up_block(2, 1)
-
-        self.upconv_1 = self.disp_block(1)
+        # self.upconv_1 = self.disp_block(1)
 
         # self.upconv_6 = self.conv_up_block(512, 512)
         # self.upconv_5 = self.conv_up_block(512, 256)
@@ -56,6 +60,37 @@ class mono_net(nn.Module):  # vgg version
         # self.get_disp3 = self.disp_block(64)
         # self.get_disp2 = self.disp_block(32)
         # self.get_disp1 = self.disp_block(16)
+
+    #
+    # seq.add(Conv2D(int(filt_num), (2, 2), input_shape=(input_dim1, input_dim2, input_dim3), padding='valid',
+    #                name='S1_c1%d' % (i)))
+    # seq.add(Activation('relu', name='S1_relu1%d' % (i)))
+    # seq.add(Conv2D(int(filt_num), (2, 2), padding='valid', name='S1_c2%d' % (i)))
+    # seq.add(BatchNormalization(axis=-1, name='S1_BN%d' % (i)))
+    # seq.add(Activation('relu', name='S1_relu2%d' % (i)))
+
+    def convblock(self, in_dim, out_dim):
+        block = []
+
+        block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.ELU()]
+        block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.BatchNorm2d(out_dim)]
+        block += [nn.ELU()]
+
+        return nn.Sequential(*block)
+
+    def lastblock(self, in_dim, out_dim):
+        block = []
+
+        block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.ELU()]
+        block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.Sigmoid()]
+
+        return nn.Sequential(*block)
+
+
 
     def conv_down_block(self, in_dim, out_dim, kernal):
         conv_down_block = []
@@ -149,36 +184,19 @@ class mono_net(nn.Module):  # vgg version
     def forward(self, x):
         # 3x256x512
 
-        conv_1 = self.downconv_1(x)  # 32x128x256
-        # print("CONV1 ",conv_1.shape)
+        x = self.conv_1(x)  # 32x128x256
+        print("CONV1", x.shape)
 
-        conv_2 = self.downconv_2(conv_1)  # 32x128x256
-        # print("CONV2 ", conv_2.shape)
+        x = self.conv_2(x)  # 32x128x256
+        print("CONV2", x.shape)
 
-        conv_3 = self.downconv_3(conv_2)  # 32x128x256
-        # print("CONV3 ", conv_3.shape)
+        x = self.conv_3(x)  # 32x128x256
+        print("CONV3", x.shape)
 
-        conv_3_swap = conv_3.permute(0, 2, 3,1)
+        x = self.conv_4(x)  # 32x128x256
+        print("CONV4", x.shape)
 
-
-        conv3_up = self.upsample_(conv_3_swap, 2)
-        # print("CONV3_UP ", conv3_up.shape)
-
-        upconv_3 = self.upconv_3(conv3_up)
-        # print("UP_CONV3 ", upconv_3.shape)
-
-
-        conv2_up = self.upsample_(upconv_3, 2)
-        # print("CONV2_UP ", conv2_up.shape)
-
-        upconv_2 = self.upconv_2(conv2_up)
-        # print("UP_CONV2", upconv_2.shape)
-
-
-        upconv_1 = self.upconv_1(upconv_2)
-        # print("UP_CONV1", upconv_1.shape)
-
-        return upconv_1
+        return x
         # conv_2 = self.downconv_2(conv_1)  # 64x64x128
         # conv_3 = self.downconv_3(conv_2)  # 128x32x64
         # conv_4 = self.downconv_4(conv_3)  # 256x16x32
@@ -329,26 +347,20 @@ dataset_test = EpiDataset(folder='/tmp/gino/')
 training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 
-
 for epoch in range(1000):
 
     for batch in training_generator:
-
         net.train()
         optimizer.zero_grad()
 
         input = batch['rgb']
         target = batch['depth']
 
-
         input = input.to(device)
         target = target.to(device)
 
-        input = input.permute(0,2,1,3)
-
 
         with torch.set_grad_enabled(True):
-
             # print("INPUT", input.shape)
             output = net(input)
 
@@ -369,7 +381,6 @@ for epoch in range(1000):
         target = batch['depth'].cpu().numpy()
 
         input = input.to(device)
-        input = input.permute(0, 2, 1, 3)
 
         output = net(input).detach().cpu().numpy()
 
