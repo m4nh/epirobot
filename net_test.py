@@ -150,6 +150,7 @@ class mono_net(nn.Module):  # vgg version
 
         x = torch.unsqueeze(x,1)
         conv_1 = self.downconv_1(x)  # 32x128x256
+        x = torch.squeeze(x)
         print("CONV1 "*10, conv_1.shape)
         conv_2 = self.downconv_2(conv_1)  # 64x64x128
         conv_3 = self.downconv_3(conv_2)  # 128x32x64
