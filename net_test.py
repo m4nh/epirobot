@@ -24,7 +24,7 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.downconv_1 = self.conv_down_block3D(1, 16, 7)
+        self.downconv_1 = self.conv_down_block3D(input_nc, 32, 7)
         self.downconv_2 = self.conv_down_block(32, 64, 5)
         self.downconv_3 = self.conv_down_block(64, 128, 3)
         self.downconv_4 = self.conv_down_block(128, 256, 3)
@@ -64,10 +64,12 @@ class mono_net(nn.Module):  # vgg version
 
     def conv_down_block3D(self, in_dim, out_dim, kernal):
         conv_down_block = []
-        conv_down_block += [nn.Conv3d(in_dim, out_dim, kernel_size=kernal, stride=1, padding=int((kernal - 1) / 2)),
-                            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h,w
-        conv_down_block += [nn.Conv3d(out_dim, out_dim, kernel_size=kernal, stride=2, padding=int((kernal - 1) / 2)),
-                            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
+        conv_down_block += [
+            nn.Conv3d(in_dim, out_dim, kernel_size=(in_dim, kernal, kernal), stride=1, padding=int((kernal - 1) / 2)),
+            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h,w
+        conv_down_block += [
+            nn.Conv3d(out_dim, out_dim, kernel_size=(in_dim, kernal, kernal), stride=2, padding=int((kernal - 1) / 2)),
+            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
 
         return nn.Sequential(*conv_down_block)
 
@@ -103,8 +105,8 @@ class mono_net(nn.Module):  # vgg version
         return temp
 
     def scale_pyramid_(self, img, num_scales):
-        #img = torch.mean(img, 1)
-        #img = torch.unsqueeze(img, 1)
+        # img = torch.mean(img, 1)
+        # img = torch.unsqueeze(img, 1)
         scaled_imgs = [img]
         s = img.size()
         h = int(s[2])
@@ -116,8 +118,6 @@ class mono_net(nn.Module):  # vgg version
             temp = nn.functional.upsample(img, [nh, nw], mode='nearest')
             scaled_imgs.append(temp)
         return scaled_imgs
-
-
 
     def gradient_x(self, img):
         gx = img[:, :, :, :-1] - img[:, :, :, 1:]
@@ -143,15 +143,15 @@ class mono_net(nn.Module):  # vgg version
         smoothness_x = [torch.nn.functional.pad(k, (0, 1, 0, 0, 0, 0, 0, 0), mode='constant') for k in smoothness_x]
         smoothness_y = [torch.nn.functional.pad(k, (0, 0, 0, 1, 0, 0, 0, 0), mode='constant') for k in smoothness_y]
 
-        return smoothness_x , smoothness_y
+        return smoothness_x, smoothness_y
 
     def forward(self, x):
         # 3x256x512
 
-        x = torch.unsqueeze(x,1)
+        x = torch.unsqueeze(x, 1)
         conv_1 = self.downconv_1(x)  # 32x128x256
         conv_1 = torch.squeeze(conv_1)
-        print("CONV1 "*10, conv_1.shape)
+        print("CONV1 " * 10, conv_1.shape)
         conv_2 = self.downconv_2(conv_1)  # 64x64x128
         conv_3 = self.downconv_3(conv_2)  # 128x32x64
         conv_4 = self.downconv_4(conv_3)  # 256x16x32
@@ -264,7 +264,7 @@ class EpiDataset(Dataset):
 
         depth = depth / np.max(depth)
 
-        depth = np.expand_dims(depth,0)
+        depth = np.expand_dims(depth, 0)
         return depth
 
     def __getitem__(self, idx):
@@ -291,9 +291,9 @@ for param in net.parameters():
 lr = 0.0001
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
-#criterion = nn.MSELoss()
+# criterion = nn.MSELoss()
 
-#criterion = nn.CrossEntropyLoss()
+# criterion = nn.CrossEntropyLoss()
 
 
 dataset = EpiDataset(folder='/tmp/gino/')
@@ -354,8 +354,8 @@ for epoch in range(1000):
             optimizer.step()
 
     for batch in validation_generator:
-        print("∞"*20)
-        print("TEST "*20)
+        print("∞" * 20)
+        print("TEST " * 20)
         net.eval()
         input = batch['rgb']
         target = batch['depth'].cpu().numpy()
