@@ -31,8 +31,6 @@ class mono_net(nn.Module):  # vgg version
         # self.layer_5 = self.convblock(256, 256, 3)
         self.layer_4 = self.lastblock(256, 1)
 
-
-
     def convblock(self, in_dim, out_dim, kernel=3):
         block = []
 
@@ -53,8 +51,6 @@ class mono_net(nn.Module):  # vgg version
         block += [nn.Sigmoid()]
 
         return nn.Sequential(*block)
-
-
 
     def conv_down_block(self, in_dim, out_dim, kernal):
         conv_down_block = []
@@ -148,7 +144,6 @@ class mono_net(nn.Module):  # vgg version
     def forward(self, x):
         # 3x256x512
 
-
         x = self.layer_1(x)
         # print("L:", x.shape)
 
@@ -160,7 +155,6 @@ class mono_net(nn.Module):  # vgg version
 
         x = self.layer_4(x)
         # print("L:", x.shape)
-
 
         return x
 
@@ -203,7 +197,6 @@ class EpiDataset(Dataset):
 
             # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-
             gray = np.expand_dims(gray, 0)
             # print(gray.shape)
             if stack is None:
@@ -230,7 +223,7 @@ class EpiDataset(Dataset):
 
     def buildMask(self, depth):
         mask = np.zeros(depth.shape, np.float32)
-        mask[depth<1.0] = 1.0
+        mask[depth < 1.0] = 1.0
 
         return mask
 
@@ -266,7 +259,7 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 # criterion = nn.MSELoss()
 
 # criterion = nn.CrossEntropyLoss()
-
+criterion = nn.L1Loss()
 
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino/')
@@ -294,7 +287,6 @@ for epoch in range(1000):
         target = batch['depth']
         mask = batch['mask']
 
-
         # print(input.shape)
         # target = target * mask
         #
@@ -309,7 +301,6 @@ for epoch in range(1000):
         target = target.to(device)
         mask = target.to(device)
 
-
         with torch.set_grad_enabled(True):
             # print("INPUT", input.shape)
             output = net(input)
@@ -322,8 +313,8 @@ for epoch in range(1000):
             output_foreground = output * (1.0 - mask)
             target_foreground = target * (1.0 - mask)
 
-            loss1 = torch.sum(torch.abs(output_background - target_background))
-            loss2 = torch.sum(torch.abs(output_foreground - target_foreground))
+            loss1 = criterion(output_background, target_background)
+            loss2 = criterion(output_foreground, target_foreground)
             loss = loss1 + 10 * loss2
             # print(loss)
 
@@ -333,9 +324,9 @@ for epoch in range(1000):
             cumulative_loss += loss.detach().cpu().numpy()
             counter += 1.0
 
-    print("Loss",cumulative_loss/counter)
+    print("Loss", cumulative_loss / counter)
 
-        #
+    #
     for batch in validation_generator:
         print("∞" * 20)
         print("TEST " * 20)
