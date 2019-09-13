@@ -307,16 +307,17 @@ for epoch in range(1000):
 
             # print("OUTPUT", output.shape)
 
-            output_background = output * mask
-            target_background = target * mask
+            # output_background = output * mask
+            # target_background = target * mask
+            #
+            # output_foreground = output * (1.0 - mask)
+            # target_foreground = target * (1.0 - mask)
+            #
+            # loss1 = criterion(output_background, target_background)
+            # loss2 = criterion(output_foreground, target_foreground)
+            # loss = loss1 + 10 * loss2
 
-            output_foreground = output * (1.0 - mask)
-            target_foreground = target * (1.0 - mask)
-
-            loss1 = criterion(output_background, target_background)
-            loss2 = criterion(output_foreground, target_foreground)
-            loss = loss1 + 10 * loss2
-            # print(loss)
+            loss = criterion(output, target)
 
             loss.backward()
             optimizer.step()
