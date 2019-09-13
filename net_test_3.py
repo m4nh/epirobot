@@ -260,7 +260,7 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.0001
+lr = 0.001
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
 # criterion = nn.MSELoss()
@@ -317,14 +317,14 @@ for epoch in range(1000):
             # print("OUTPUT", output.shape)
 
             output_background = output * mask
-            target_backgound = target * mask
+            target_background = target * mask
 
             output_foreground = output * (1.0 - mask)
             target_foreground = target * (1.0 - mask)
 
-            loss1 = torch.sum(torch.abs(output_background - target_backgound))
+            loss1 = torch.sum(torch.abs(output_background - target_background))
             loss2 = torch.sum(torch.abs(output_foreground - target_foreground))
-            loss = loss1 + 100 * loss2
+            loss = loss1 + 10 * loss2
             # print(loss)
 
             loss.backward()
