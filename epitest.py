@@ -91,7 +91,7 @@ def mouseMove(event, x, y, flags, param):
 
 #folder = '/private/tmp/epirobot2/'
 #folder = '/Users/daniele/Downloads/benchmark/training/sideboard'
-folder = '/private/tmp/gino/frame_00001'
+folder = '/private/tmp/dataset_train/frame_d3d22c685dc449978c9055e3efc221d2'
 images = list(sorted(glob.glob(os.path.join(folder, '*.jpg'))))
 
 images = list(map(cv2.imread, images))

@@ -52,6 +52,7 @@ def loadPly(filepath, rescale_factor = 0.005, collection='Items'):
         
     bpy.ops.object.select_all(action='DESELECT')
         
+    print("LOADING",name)
     if name is not None:
         obj = bpy.data.objects[name]
         obj.name = PIECE_BASE_NAME
@@ -85,15 +86,15 @@ def randomizeCameraPosition():
     camera.location = (
         0.0,
         0.0,
-        random.uniform(3,6.5)
+        random.uniform(0.3,0.5)
     )
 
 def randomizeLight():
     light = bpy.data.objects['Point']
     bounds = np.array([
-        [-1.0,1.0],
-        [-1.0,1.0],
-        [2.0,4.0]
+        [-0.15,0.15],
+        [-0.15,0.15],
+        [0.3,0.6]
     ])
     
     light.location = (
@@ -102,15 +103,15 @@ def randomizeLight():
         random.uniform(bounds[2][0],bounds[2][1])
     )
     l = bpy.data.lights['Point']
-    l.energy = random.uniform(100,300)
+    l.energy = random.uniform(1,15)
 
 
 def randomizeObjectPose(obj):
 
     bounds = np.array([
-        [-1.5,1.5],
-        [-1.0,1.0],
-        [0.02,1.0]
+        [-0.1,0.1],
+        [-0.1,0.1],
+        [0.02,0.1]
     ])
     
     r0 = random.uniform(-90,90)
@@ -122,7 +123,17 @@ def randomizeObjectPose(obj):
         random.uniform(bounds[1][0],bounds[1][1]),
         random.uniform(bounds[2][0],bounds[2][1])
     )
+    print("BEFORE", obj.scale)
     obj.scale = obj.scale * random.uniform(0.3,1.05)
+    print("AFTER", obj.scale)
+    
+    
+def randomizeTable():
+    table = bpy.data.objects['Table']
+    assignRandomTextureToObject(table,table_textures)
+    r2 = random.uniform(-90,90)
+    table.rotation_euler = (0,0,r2) 
+    
     
 def clearUnusedImages():
     """ CLEARS UNUSED IMAGES IN THE REPOSITORY """
@@ -177,14 +188,14 @@ def createOutputNode(output_path='/tmp/gino', name='OutFile', format='OPEN_EXR')
 
 
 
-camera = bpy.data.objects["Camera"]
 
-output_path = '/tmp/gino/frame_{}/'
-for j in range(32):
+output_path = '/tmp/dataset_train/frame_{}/'
+for j in range(20):
     
     # RANDOMIZE TABLE
-    table = bpy.data.objects['Table']
-    assignRandomTextureToObject(table,table_textures)
+    randomizeTable()
+    #table = bpy.data.objects['Table']
+    #assignRandomTextureToObject(table,table_textures)
         
 
     # RANDOMIZE OBJECTS
@@ -192,18 +203,15 @@ for j in range(32):
     for i in range(10):
         model = loadPly(
             random.choice(models_files),
-            rescale_factor = 0.007
+            rescale_factor = 0.0007
         )
         randomizeObjectPose(model)
         assignRandomTextureToObject(model,objects_textures)
-        print(i, model.scale)
         
     
     # RANDOMIZE CAMERA AND LIGHTS
     randomizeCameraPosition()
     randomizeLight()
-
-    print("CAMERA "*20, camera.location)
 
 
     # RENDER OUTPUT
@@ -227,20 +235,19 @@ for j in range(32):
     )
 
 
-    
-    for v in range(16):
+    camera = bpy.data.objects["Camera"]
+    for i in range(32):
         
-        #translateObject(camera,np.array([0.005,0.0,0]))
-        camera.location.x += 0.005
+        camera.location.x += 0.002
         #rotateObject(camera, 'Y', -0.25)
             
-        num = str(v).zfill(5)
+        num = str(i).zfill(5)
         
         depth_node.file_slots[0].path = 'depth_{}_'.format(num)
         rgb_node.file_slots[0].path = 'rgb_{}_'.format(num)
         bpy.ops.render.render(write_still=True)
 
-    
+
 
     nodes.remove(depth_node)
     nodes.remove(rgb_node)

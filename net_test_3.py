@@ -24,12 +24,12 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.layer_1 = self.convblock(16, 32, 5)
-        self.layer_2 = self.convblock(32, 64, 3)
-        self.layer_3 = self.convblock(64, 128, 3)
+        self.layer_1 = self.convblock(input_nc, 64, 5)
+        self.layer_2 = self.convblock(64, 128, 3)
+        self.layer_3 = self.convblock(128, 256, 3)
         # self.layer_4 = self.convblock(128, 256, 3)
         # self.layer_5 = self.convblock(256, 256, 3)
-        self.layer_4 = self.lastblock(128, 1)
+        self.layer_4 = self.lastblock(256, 1)
 
 
 
@@ -251,7 +251,7 @@ class EpiDataset(Dataset):
         return sample
 
 
-net = mono_net(16, 1)
+net = mono_net(32, 1)
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
