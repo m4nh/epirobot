@@ -87,7 +87,7 @@ class mono_net(nn.Module):  # vgg version
         block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
         block += [nn.ELU()]
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
-        block += [nn.Sigmoid()]
+        # block += [nn.Sigmoid()]
 
         return nn.Sequential(*block)
 
@@ -329,7 +329,7 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.0001
+lr = 0.00005
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
 # criterion = nn.MSELoss()
@@ -347,12 +347,12 @@ for epoch in range(1000):
 
     print("EPOCH", epoch)
 
-    if epoch % 50 == 0 and epoch > 0:
-        lr = lr * 0.9
+    if epoch % 10 == 0 and epoch > 0:
+        lr = lr * 0.5
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
-        
+
     for batch in training_generator:
         net.train()
         optimizer.zero_grad()
