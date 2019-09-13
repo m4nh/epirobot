@@ -399,7 +399,7 @@ for epoch in range(1000):
 
         input = input.to(device)
         target = target.to(device)
-        mask = target.to(mask)
+        mask = target.to(device)
 
 
         with torch.set_grad_enabled(True):
