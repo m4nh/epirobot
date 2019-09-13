@@ -93,6 +93,49 @@ class mono_net(nn.Module):  # vgg version
 
         return temp
 
+    def scale_pyramid_(self, img, num_scales):
+        #img = torch.mean(img, 1)
+        #img = torch.unsqueeze(img, 1)
+        scaled_imgs = [img]
+        s = img.size()
+        h = int(s[2])
+        w = int(s[3])
+        for i in range(num_scales):
+            ratio = 2 ** (i + 1)
+            nh = h // ratio
+            nw = w // ratio
+            temp = nn.functional.upsample(img, [nh, nw], mode='nearest')
+            scaled_imgs.append(temp)
+        return scaled_imgs
+
+
+
+    def gradient_x(self, img):
+        gx = img[:, :, :, :-1] - img[:, :, :, 1:]
+        return gx
+
+    def gradient_y(self, img):
+        gy = img[:, :, :-1, :] - img[:, :, 1:, :]
+        return gy
+
+    def get_disparity_smoothness(self, disp, input_img):
+        disp_gradients_x = [self.gradient_x(d) for d in disp]
+        disp_gradients_y = [self.gradient_y(d) for d in disp]
+
+        image_gradients_x = [self.gradient_x(img) for img in input_img]
+        image_gradients_y = [self.gradient_y(img) for img in input_img]
+
+        weights_x = [torch.exp(-torch.mean(torch.abs(g), 1, keepdim=True)) for g in image_gradients_x]
+        weights_y = [torch.exp(-torch.mean(torch.abs(g), 1, keepdim=True)) for g in image_gradients_y]
+
+        smoothness_x = [disp_gradients_x[i] * weights_x[i] for i in range(4)]
+        smoothness_y = [disp_gradients_y[i] * weights_y[i] for i in range(4)]
+
+        smoothness_x = [torch.nn.functional.pad(k, (0, 1, 0, 0, 0, 0, 0, 0), mode='constant') for k in smoothness_x]
+        smoothness_y = [torch.nn.functional.pad(k, (0, 0, 0, 1, 0, 0, 0, 0), mode='constant') for k in smoothness_y]
+
+        return smoothness_x , smoothness_y
+
     def forward(self, x):
         # 3x256x512
         conv_1 = self.downconv_1(x)  # 32x128x256
@@ -207,6 +250,8 @@ class EpiDataset(Dataset):
         depth = cv2.imread(images[0], 2)
 
         depth = depth / np.max(depth)
+
+        depth = np.expand_dims(depth,0)
         return depth
 
     def __getitem__(self, idx):
@@ -259,27 +304,36 @@ for epoch in range(1000):
         # TRAINING
         net.train()
 
-        # print(batch['rgb'].shape)
-
         input = batch['rgb']
         target = batch['depth']
 
         input = input.to(device)
         target = target.to(device)
 
+        pyramid = net.scale_pyramid_(input, 4)
+        target_pyramid = net.scale_pyramid_(target, 4)
+
         optimizer.zero_grad()
 
         with torch.set_grad_enabled(True):
-            # print("Input: ", input.shape)
-            # print("Target: ", target.shape)
 
-            output = net(input)[0]
+            output = net(input)
 
-            # print("Output:", output.shape)
+            output = [torch.unsqueeze(d[:, 0, :, :], 1) for d in output]
 
-            #loss = torch.sqrt(criterion(output[:, 0, :, :], target))
+            depth_loss = 0.0
+            for index, out in enumerate(output):
+                dl = torch.sum(torch.abs(output[index] - target_pyramid[index]))
+                depth_loss += dl
 
-            loss = torch.sum(torch.abs(output[:, 0, :, :] - target))
+            smoothness_x, smoothness_y = net.get_disparity_smoothness(output, pyramid)
+            smoothness_loss = 0.0
+
+            for index, s in enumerate(smoothness_x):
+                smoothness_loss += (torch.mean(torch.abs(smoothness_x[index])) / (2 ** index))
+                smoothness_loss += (torch.mean(torch.abs(smoothness_y[index])) / (2 ** index))
+
+            loss = depth_loss + 0.0 * smoothness_loss
 
             print("Loss:", loss)
 
