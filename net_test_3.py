@@ -205,6 +205,7 @@ class EpiDataset(Dataset):
                 # stack = np.dstack((stack, gray))
                 stack = np.vstack((stack, gray))
 
+        stack = cv2.flip(stack, 0)
         stack = stack.astype(np.float32)
         stack = stack / 255.
         # print(stack.shape)
