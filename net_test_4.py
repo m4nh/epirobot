@@ -328,7 +328,7 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 # criterion = nn.MSELoss()
 
 # criterion = nn.CrossEntropyLoss()
-criterion = nn.L2Loss()
+criterion = nn.L1Loss()
 
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino/')
