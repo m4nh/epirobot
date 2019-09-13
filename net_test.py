@@ -24,7 +24,7 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.downconv_1 = self.conv_down_block(input_nc, 32, 7)
+        self.downconv_1 = self.conv_down_block3D(1, 32, 7)
         self.downconv_2 = self.conv_down_block(32, 64, 5)
         self.downconv_3 = self.conv_down_block(64, 128, 3)
         self.downconv_4 = self.conv_down_block(128, 256, 3)
@@ -59,6 +59,15 @@ class mono_net(nn.Module):  # vgg version
                             nn.BatchNorm2d(out_dim), nn.ELU()]  # h,w -> h,w
         conv_down_block += [nn.Conv2d(out_dim, out_dim, kernel_size=kernal, stride=2, padding=int((kernal - 1) / 2)),
                             nn.BatchNorm2d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
+
+        return nn.Sequential(*conv_down_block)
+
+    def conv_down_block3D(self, in_dim, out_dim, kernal):
+        conv_down_block = []
+        conv_down_block += [nn.Conv3d(in_dim, out_dim, kernel_size=kernal, stride=1, padding=int((kernal - 1) / 2)),
+                            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h,w
+        conv_down_block += [nn.Conv3d(out_dim, out_dim, kernel_size=kernal, stride=2, padding=int((kernal - 1) / 2)),
+                            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
 
         return nn.Sequential(*conv_down_block)
 
@@ -138,7 +147,10 @@ class mono_net(nn.Module):  # vgg version
 
     def forward(self, x):
         # 3x256x512
+
+        x = torch.unsqueeze(x,1)
         conv_1 = self.downconv_1(x)  # 32x128x256
+        print("CONV1 "*10, conv_1.shape)
         conv_2 = self.downconv_2(conv_1)  # 64x64x128
         conv_3 = self.downconv_3(conv_2)  # 128x32x64
         conv_4 = self.downconv_4(conv_3)  # 256x16x32
