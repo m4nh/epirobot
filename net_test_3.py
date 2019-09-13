@@ -293,14 +293,15 @@ for epoch in range(1000):
         mask = batch['mask']
 
 
+        print(input.shape)
         # target = target * mask
         #
         # target = target.cpu().numpy()
         # cv2.imshow("depth", (target[0][0]*255.).astype(np.uint8))
         # # cv2.imshow("mask", (mask[0][0] * 255.).astype(np.uint8))
         # cv2.waitKey(0)
-        # import sys
-        # sys.exit(0)
+        import sys
+        sys.exit(0)
 
         input = input.to(device)
         target = target.to(device)
