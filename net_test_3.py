@@ -193,16 +193,16 @@ class mono_net(nn.Module):  # vgg version
 
 
         x = self.layer_1(x)
-        print("L:", x.shape)
+        # print("L:", x.shape)
 
         x = self.layer_2(x)
-        print("L:", x.shape)
+        # print("L:", x.shape)
 
         x = self.layer_3(x)
-        print("L:", x.shape)
+        # print("L:", x.shape)
 
         x = self.layer_4(x)
-        print("L:", x.shape)
+        # print("L:", x.shape)
 
 
         return x
