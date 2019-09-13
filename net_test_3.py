@@ -321,14 +321,25 @@ class EpiDataset(Dataset):
         depth = np.expand_dims(depth, 0)
         return depth
 
+    def buildMask(self, depth):
+        mask = np.zeros(depth.shape, np.float32)
+        mask[depth<1.0] = 1.0
+
+        return mask
+
     def __getitem__(self, idx):
 
         if idx not in self.cache:
             self.cache[idx] = {}
             self.cache[idx]['rgb'] = self.loadRGB(self.subfolders[idx])
             self.cache[idx]['depth'] = self.loadDepth(self.subfolders[idx])
+            self.cache[idx]['mask'] = self.buildMask(self.cache[idx]['depth'])
 
-        sample = {'rgb': self.cache[idx]['rgb'], 'depth': self.cache[idx]['depth']}
+        sample = {
+            'rgb': self.cache[idx]['rgb'],
+            'depth': self.cache[idx]['depth'],
+            'mask': self.cache[idx]['mask']
+        }
 
         return sample
 
@@ -374,9 +385,21 @@ for epoch in range(1000):
 
         input = batch['rgb']
         target = batch['depth']
+        mask = batch['mask']
+
+
+        # target = target * mask
+        #
+        # target = target.cpu().numpy()
+        # cv2.imshow("depth", (target[0][0]*255.).astype(np.uint8))
+        # # cv2.imshow("mask", (mask[0][0] * 255.).astype(np.uint8))
+        # cv2.waitKey(0)
+        # import sys
+        # sys.exit(0)
 
         input = input.to(device)
         target = target.to(device)
+        mask = target.to(mask)
 
 
         with torch.set_grad_enabled(True):
@@ -385,7 +408,15 @@ for epoch in range(1000):
 
             # print("OUTPUT", output.shape)
 
-            loss = torch.sum(torch.abs(output - target))
+            output_background = output * mask
+            target_backgound = target * mask
+
+            output_foreground = output * (1.0 - mask)
+            target_foreground = target * (1.0 - mask)
+
+            loss1 = torch.sum(torch.abs(output_background - target_backgound))
+            loss2 = torch.sum(torch.abs(output_foreground - target_foreground))
+            loss = loss1 + 100 * loss2
             # print(loss)
 
             loss.backward()
@@ -393,7 +424,8 @@ for epoch in range(1000):
 
             cumulative_loss += loss.detach().cpu().numpy()
             counter += 1.0
-        print("Loss",cumulative_loss/counter)
+
+    print("Loss",cumulative_loss/counter)
 
         #
     for batch in validation_generator:
