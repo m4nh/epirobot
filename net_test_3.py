@@ -353,14 +353,14 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 dataset = EpiDataset(folder='/tmp/gino/')
 dataset_test = EpiDataset(folder='/tmp/gino/')
 
-training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
-validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
+training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=True)
+validation_generator = DataLoader(dataset_test, batch_size=8, shuffle=True, num_workers=0, drop_last=True)
 
 for epoch in range(1000):
 
     print("EPOCH", epoch)
 
-    if epoch % 10 == 0 and epoch > 0:
+    if epoch % 100 == 0 and epoch > 0:
         lr = lr * 0.5
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
