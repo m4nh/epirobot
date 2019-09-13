@@ -24,7 +24,7 @@ class mono_net(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.downconv_1 = self.conv_down_block3D(input_nc, 32, 5)
+        self.downconv_1 = self.conv_down_block3D(input_nc, 32, 2)
         self.downconv_2 = self.conv_down_block(32, 64, 5)
         self.downconv_3 = self.conv_down_block(64, 128, 3)
         self.downconv_4 = self.conv_down_block(128, 256, 3)
