@@ -317,9 +317,9 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.0001
-# optimizer = optim.Adam(net.parameters(), lr=lr)
-optimizer = optim.RMSprop(net.parameters(), lr=lr)
+lr = 0.00001
+optimizer = optim.Adam(net.parameters(), lr=lr)
+# optimizer = optim.RMSprop(net.parameters(), lr=lr)
 
 # criterion = nn.MSELoss()
 
