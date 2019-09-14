@@ -342,10 +342,10 @@ for epoch in range(5001):
 
     print("EPOCH", epoch)
 
-    if epoch % 5 == 0 and epoch >0:
+    if epoch % 2 == 0 and epoch >0:
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
-        torch.save(net.state_dict(), checkpoint_path)
+        torch.save(net.state_dict(), os.path.join(checkpoint_path,"saved_epoch_{}".format(epoch)))
 
     if epoch % 200 == 0 and epoch > 0:
         lr = lr * 0.8
