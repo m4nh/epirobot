@@ -147,7 +147,7 @@ def clearUnusedImages():
 clearUnusedImages()
 
 # LOAD OBJECT TEXTURES
-objects_texture_path = '/Users/daniele/Desktop/EpiRobot/DatasetGenerator/ObjectsTexture'
+objects_texture_path = 'media/ObjectsTexture'
 objects_textures_files = browseFiles(objects_texture_path, ['jpg','png'])
 objects_textures = []
 
@@ -158,7 +158,7 @@ for index, texture_file in enumerate(objects_textures_files):
 
 
 # LOAD TABLE TEXTURES
-table_texture_path = '/Users/daniele/Desktop/EpiRobot/DatasetGenerator/TableTextures'
+table_texture_path = 'media/TableTextures'
 table_textures_files = browseFiles(table_texture_path, ['jpg','png'])
 table_textures = []
 
@@ -171,7 +171,7 @@ for index, texture_file in enumerate(table_textures_files):
 
 # LOAD MODELS
 models_extension = 'ply'
-models_path = "/Users/daniele/Downloads/models_cad/"
+models_path = "media/CadModels/"
 models_files = glob.glob(os.path.join(models_path,"*.{}".format(models_extension)))
 
 
@@ -189,7 +189,7 @@ def createOutputNode(output_path='/tmp/gino', name='OutFile', format='OPEN_EXR')
 
 
 
-output_path = '/tmp/dataset_train/frame_{}/'
+output_path = '/tmp/vc_dataset_train/frame_{}/'
 for j in range(20):
     
     # RANDOMIZE TABLE
