@@ -312,6 +312,8 @@ class EpiDataset(Dataset):
         return sample
 
 
+checkpoint_path = 'media/Checkpoints'
+
 net = mono_net(32, 1)
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -336,9 +338,14 @@ dataset_test = EpiDataset(folder='/tmp/gino/')
 training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
 
-for epoch in range(5000):
+for epoch in range(5001):
 
     print("EPOCH", epoch)
+
+    if epoch % 50 == 0 and epoch >0:
+        if not os.path.exists(checkpoint_path):
+            os.makedirs(checkpoint_path)
+        torch.save(net.state_dict(), checkpoint_path)
 
     if epoch % 200 == 0 and epoch > 0:
         lr = lr * 0.8
