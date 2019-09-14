@@ -18,7 +18,7 @@ class EpiveyorNet(nn.Module):  # vgg version
         self.output_nc = output_nc
 
         self.layer_1_3D = self.convblock3D(input_nc, 1, 128, 5, 1)
-        self.layer_1_2D = self.convblock2D(input_nc, 128, 5)
+        self.layer_1_2D = self.convblock2D(1, 128, 5)
 
         self.layer_2 = self.convblock2D(256, 256, 3,2)
         self.layer_3 = self.convblock2D(256, 512, 3,2)
@@ -116,7 +116,7 @@ class EpiveyorNet(nn.Module):  # vgg version
         return smoothness_x, smoothness_y
 
     def debugPrint(self, label, *argv):
-        # debug = False
+        # debug = True
         # if debug: print(label.ljust(15), *argv)
         pass
 
@@ -135,7 +135,8 @@ class EpiveyorNet(nn.Module):  # vgg version
         l1_3d = torch.squeeze(l1_3d_u,2)
         self.debugPrint("L1 3D:", l1_3d.shape)
 
-        l1_2d = self.layer_1_2D(x)
+        frame = torch.unsqueeze(x[:,0,::], 1)
+        l1_2d = self.layer_1_2D(frame)
         self.debugPrint("L1 2D:", l1_2d.shape)
 
         l1 = torch.cat((l1_3d, l1_2d),1)
