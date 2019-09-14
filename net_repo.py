@@ -13,7 +13,7 @@ import os
 
 class EpiveyorNet(nn.Module):  # vgg version
     def __init__(self, input_nc, output_nc):
-        super(mono_net, self).__init__()
+        super(EpiveyorNet, self).__init__()
 
         self.output_nc = output_nc
 
