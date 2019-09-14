@@ -116,8 +116,9 @@ class EpiveyorNet(nn.Module):  # vgg version
         return smoothness_x, smoothness_y
 
     def debugPrint(self, label, *argv):
-        debug = False
-        if debug: print(label.ljust(15), *argv)
+        # debug = False
+        # if debug: print(label.ljust(15), *argv)
+        pass
 
     def forward(self, x):
         # 3x256x512
