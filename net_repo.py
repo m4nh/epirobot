@@ -499,4 +499,4 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         l5 = self.layer_5(l4)
         self.debugPrint("L5:", l5.shape)
 
-        return l4
+        return l5

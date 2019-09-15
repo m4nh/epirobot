@@ -16,13 +16,12 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import cv2
-from net_repo import EpiDatasetCrop, EpiveyorNet,EpiveyorPathNet
+from net_repo import EpiDatasetCrop, EpiveyorNet, EpiveyorPathNet
 from torchsummary import summary
 
 checkpoint_path = 'media/Checkpoints'
 
 net = EpiveyorPathNet(16, 1)
-
 
 # summary(net,input_size=(16,32,32))
 
@@ -48,10 +47,10 @@ for epoch in range(5001):
 
     print("EPOCH", epoch)
 
-    if epoch % 200 == 0 and epoch >0:
+    if epoch % 200 == 0 and epoch > 0:
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
-        torch.save(net.state_dict(), os.path.join(checkpoint_path,"saved_epoch_{}.pb".format(epoch)))
+        torch.save(net.state_dict(), os.path.join(checkpoint_path, "saved_epoch_{}.pb".format(epoch)))
         torch.save(net.state_dict(), os.path.join(checkpoint_path, "last_model.pb"))
 
     if epoch % 200 == 0 and epoch > 0:
@@ -60,9 +59,9 @@ for epoch in range(5001):
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
 
-    cumulative_loss = 0.0
+    cumulative_loss = {'loss1':0.0, 'loss2':0.0, 'loss':0.0}
     counter = 0.0
-    for index,batch in enumerate(training_generator):
+    for index, batch in enumerate(training_generator):
         net.train()
         optimizer.zero_grad()
 
@@ -70,6 +69,7 @@ for epoch in range(5001):
         target = batch['depth']
         mask = batch['mask']
 
+        # print("INPUT", input[0].shape)
         # print(input.shape)
         # target = target * mask
         #
@@ -88,8 +88,16 @@ for epoch in range(5001):
             # print("INPUT", input.shape)
             output = net(input)
 
+            input_unsqueeze = torch.unsqueeze(input[:,0,::],1)
+            # input_unsqueeze = input
+            # img = (input_unsqueeze[0][0].detach().cpu().numpy()*255.).astype(np.uint8)
+            # cv2.imshow("image",img)
+            # cv2.waitKey(0)
 
-            smoothness = net.get_disparity_smoothness(output,input)
+            # print("IN" * 10, output.shape, input_unsqueeze.shape)
+            smoothness = net.get_disparity_smoothness(output, input_unsqueeze)
+
+            # print("IN" * 10, smoothness.shape)
 
             # print("OUTPUT", output.shape)
 
@@ -105,17 +113,21 @@ for epoch in range(5001):
 
             loss1 = criterion(output, target)
             loss2 = torch.mean(torch.abs(smoothness))
-            loss = loss1+loss2
+            loss = loss1 + loss2
             # print("loss:",loss1,loss2,loss)
 
             loss.backward()
             optimizer.step()
 
-            cumulative_loss += loss.detach().cpu().numpy()
+            cumulative_loss['loss1'] += loss1.detach().cpu().numpy()
+            cumulative_loss['loss2'] += loss2.detach().cpu().numpy()
+            cumulative_loss['loss'] += loss.detach().cpu().numpy()
             counter += 1.0
             print("Batch: {}/{}".format(index, len(training_generator)))
 
-    print("Loss", cumulative_loss / counter)
+    print("Loss Depth", cumulative_loss['loss1'] / counter)
+    print("Loss Smooth", cumulative_loss['loss2'] / counter)
+    print("Loss", cumulative_loss['loss'] / counter)
 
     #
 
@@ -143,10 +155,9 @@ for epoch in range(5001):
         else:
             stack = np.hstack((stack, map))
 
-        index+=1
+        index += 1
         if index >= max_stack:
             break
 
     # print("SHAPE", map_pred.shape)
     cv2.imwrite("/tmp/predictions.png", stack)
-
