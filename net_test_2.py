@@ -44,17 +44,17 @@ training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
 
-for epoch in range(5001):
+for epoch in range(50001):
 
     print("EPOCH", epoch)
 
-    if epoch % 200 == 0 and epoch > 0:
+    if epoch % 2000 == 0 and epoch > 0:
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
         torch.save(net.state_dict(), os.path.join(checkpoint_path, "saved_epoch_{}.pb".format(epoch)))
         torch.save(net.state_dict(), os.path.join(checkpoint_path, "last_model.pb"))
 
-    if epoch % 200 == 0 and epoch > 0:
+    if epoch % 2000 == 0 and epoch > 0:
         lr = lr * 0.95
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
