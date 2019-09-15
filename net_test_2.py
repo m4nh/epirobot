@@ -43,6 +43,7 @@ dataset_test = EpiDatasetCrop(folder='/tmp/gino/', crop_size=32, max_depth=16)
 training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
+
 for epoch in range(5001):
 
     print("EPOCH", epoch)
@@ -112,7 +113,7 @@ for epoch in range(5001):
             # loss = loss1 + 1000 * loss2
 
             loss1 = criterion(output, target)
-            loss2 = 10.0 * torch.mean(torch.abs(smoothness))
+            loss2 = 0.5 * torch.mean(torch.abs(smoothness))
             loss = loss1 + loss2
             # print("loss:",loss1,loss2,loss)
 
