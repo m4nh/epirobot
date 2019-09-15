@@ -23,6 +23,9 @@ checkpoint_path = 'media/Checkpoints'
 
 net = EpiveyorPathNet(16, 1)
 
+
+
+
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 net = net.to(device)
@@ -85,6 +88,9 @@ for epoch in range(5001):
             # print("INPUT", input.shape)
             output = net(input)
 
+
+            smoothness = net.get_disparity_smoothness(output,input)
+
             # print("OUTPUT", output.shape)
 
             # output_background = output * mask
@@ -97,7 +103,10 @@ for epoch in range(5001):
             # loss2 = criterion(output_foreground, target_foreground)
             # loss = loss1 + 1000 * loss2
 
-            loss = criterion(output, target)
+            loss1 = criterion(output, target)
+            loss2 = torch.mean(torch.abs(smoothness))
+            loss = loss1+loss2
+            # print("loss:",loss1,loss2,loss)
 
             loss.backward()
             optimizer.step()

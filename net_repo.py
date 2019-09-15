@@ -428,6 +428,32 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         return temp
 
 
+    def gradient_x(self, img):
+        gx = img[:, :, :, :-1] - img[:, :, :, 1:]
+        return gx
+
+    def gradient_y(self, img):
+        gy = img[:, :, :-1, :] - img[:, :, 1:, :]
+        return gy
+
+    def get_disparity_smoothness(self, disp, img):
+        disp_gradients_x = self.gradient_x(disp)
+        disp_gradients_y = self.gradient_y(disp)
+
+        image_gradients_x = self.gradient_x(img)
+        image_gradients_y = self.gradient_y(img)
+
+        weights_x = torch.exp(-torch.mean(torch.abs(image_gradients_x), 1, keepdim=True))
+        weights_y = torch.exp(-torch.mean(torch.abs(image_gradients_y), 1, keepdim=True))
+
+        smoothness_x = disp_gradients_x * weights_x
+        smoothness_y = disp_gradients_y * weights_y
+
+        smoothness_x = torch.nn.functional.pad(smoothness_x, (0, 1, 0, 0, 0, 0, 0, 0), mode='constant')
+        smoothness_y = torch.nn.functional.pad(smoothness_y, (0, 0, 0, 1, 0, 0, 0, 0), mode='constant')
+
+        return torch.abs(smoothness_x) + torch.abs(smoothness_y)
+
     def debugPrint(self, label, *argv):
         # debug = True
         # if debug: print(label.ljust(15), *argv)
