@@ -131,33 +131,34 @@ for epoch in range(5001):
 
     #
 
-    stack = None
-    max_stack = 32
-    print("∞" * 20)
-    print("TEST " * 20)
-    for index, batch in enumerate(validation_generator):
+    if epoch % 10 == 0 and epoch > 0:
+        stack = None
+        max_stack = 32
+        print("∞" * 20)
+        print("TEST " * 20)
+        for index, batch in enumerate(validation_generator):
 
-        net.eval()
-        input = batch['rgb']
-        target = batch['depth'].cpu().numpy()
+            net.eval()
+            input = batch['rgb']
+            target = batch['depth'].cpu().numpy()
 
-        input = input.to(device)
+            input = input.to(device)
 
-        output = net(input).detach().cpu().numpy()
+            output = net(input).detach().cpu().numpy()
 
-        map_gt = (target[0][0] * 255).astype(np.uint8)
-        map_pred = (output[0][0] * 255).astype(np.uint8)
+            map_gt = (target[0][0] * 255).astype(np.uint8)
+            map_pred = (output[0][0] * 255).astype(np.uint8)
 
-        map = np.vstack((map_gt, map_pred))
+            map = np.vstack((map_gt, map_pred))
 
-        if stack is None:
-            stack = map
-        else:
-            stack = np.hstack((stack, map))
+            if stack is None:
+                stack = map
+            else:
+                stack = np.hstack((stack, map))
 
-        index += 1
-        if index >= max_stack:
-            break
+            index += 1
+            if index >= max_stack:
+                break
 
     # print("SHAPE", map_pred.shape)
     cv2.imwrite("/tmp/predictions.png", stack)
