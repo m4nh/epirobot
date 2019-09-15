@@ -143,7 +143,7 @@ for epoch in range(50001):
             cumulative_loss['loss3'] += loss3.detach().cpu().numpy()
             cumulative_loss['loss'] += loss.detach().cpu().numpy()
             counter += 1.0
-            print("Batch: {}/{}".format(index, len(training_generator)))
+            # print("Batch: {}/{}".format(index, len(training_generator)))
 
     print("Loss Depth", cumulative_loss['loss1'] / counter)
     print("Loss Smooth", cumulative_loss['loss2'] / counter)
