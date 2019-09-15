@@ -32,7 +32,7 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.0001
+lr = 0.001
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
 criterion = nn.L1Loss()
@@ -54,7 +54,7 @@ for epoch in range(5001):
         torch.save(net.state_dict(), os.path.join(checkpoint_path, "last_model.pb"))
 
     if epoch % 200 == 0 and epoch > 0:
-        lr = lr * 0.8
+        lr = lr * 0.95
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
