@@ -20,14 +20,14 @@ class EpiveyorNet(nn.Module):  # vgg version
         self.layer_1_3D = self.convblock3D(input_nc, 1, 128, 5, 1)
         self.layer_1_2D = self.convblock2D(1, 128, 5)
 
-        self.layer_2 = self.convblock2D(256, 256, 3,2)
-        self.layer_3 = self.convblock2D(256, 512, 3,2)
+        self.layer_2 = self.convblock2D(256, 256, 3, 2)
+        self.layer_3 = self.convblock2D(256, 512, 3, 2)
 
         self.layer_up_3 = self.convblock2D(512, 256, 3, 1)
         self.layer_up_2 = self.convblock2D(512, 256, 3, 1)
         self.layer_up_1 = self.convblock2D(512, 128, 3, 1)
 
-        self.layer_pred = self.lastblock(128,1)
+        self.layer_pred = self.lastblock(128, 1)
 
     def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3, stride=2):
         block = []
@@ -132,14 +132,14 @@ class EpiveyorNet(nn.Module):  # vgg version
         l1_3d_u = self.layer_1_3D(xu)
         self.debugPrint("L1 3D Unsq.:", l1_3d_u.shape)
 
-        l1_3d = torch.squeeze(l1_3d_u,2)
+        l1_3d = torch.squeeze(l1_3d_u, 2)
         self.debugPrint("L1 3D:", l1_3d.shape)
 
-        frame = torch.unsqueeze(x[:,0,::], 1)
+        frame = torch.unsqueeze(x[:, 0, ::], 1)
         l1_2d = self.layer_1_2D(frame)
         self.debugPrint("L1 2D:", l1_2d.shape)
 
-        l1 = torch.cat((l1_3d, l1_2d),1)
+        l1 = torch.cat((l1_3d, l1_2d), 1)
         self.debugPrint("L1:", l1.shape)
 
         l2 = self.layer_2(l1)
@@ -148,10 +148,10 @@ class EpiveyorNet(nn.Module):  # vgg version
         l3 = self.layer_3(l2)
         self.debugPrint("L3:", l3.shape)
 
-        l3_up = self.layer_up_3(self.upsample_(l3,2))
+        l3_up = self.layer_up_3(self.upsample_(l3, 2))
         self.debugPrint("L3 UP:", l3_up.shape)
 
-        l3_up_plus = torch.cat((l3_up, l2),1)
+        l3_up_plus = torch.cat((l3_up, l2), 1)
         self.debugPrint("L3 UP+:", l3_up_plus.shape)
 
         l2_up = self.layer_up_2(self.upsample_(l3_up_plus, 2))
@@ -255,11 +255,10 @@ class EpiDataset(Dataset):
         return sample
 
 
-
 class EpiDatasetCrop(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, folder,max_depth = 16, crop_size = 64):
+    def __init__(self, folder, max_depth=16, crop_size=64):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -306,8 +305,6 @@ class EpiDatasetCrop(Dataset):
                 # stack = np.dstack((stack, gray))
                 stack = np.vstack((stack, gray))
 
-
-
         # stack = cv2.flip(stack, 0)
         stack = stack.astype(np.float32)
         stack = stack / 255.
@@ -339,16 +336,14 @@ class EpiDatasetCrop(Dataset):
         self.cache[idx]['depth'] = self.loadDepth(self.subfolders[idx])
         self.cache[idx]['mask'] = self.buildMask(self.cache[idx]['depth'])
 
+        d, h, w = self.cache[idx]['rgb'].shape[:3]
 
-        d,h,w = self.cache[idx]['rgb'].shape[:3]
+        ri = np.random.randint(0, h - self.crop_size - 1)
+        rj = np.random.randint(0, w - self.crop_size - 1)
 
-        ri = np.random.randint(0,h-self.crop_size-1)
-        rj = np.random.randint(0,w-self.crop_size-1)
-
-        self.cache[idx]['rgb'] = self.cache[idx]['rgb'][:,ri:ri+self.crop_size, rj:rj+self.crop_size]
-        self.cache[idx]['depth'] = self.cache[idx]['depth'][:,ri:ri + self.crop_size, rj:rj + self.crop_size]
-        self.cache[idx]['mask'] = self.cache[idx]['mask'][:,ri:ri + self.crop_size, rj:rj + self.crop_size]
-
+        self.cache[idx]['rgb'] = self.cache[idx]['rgb'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
+        self.cache[idx]['depth'] = self.cache[idx]['depth'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
+        self.cache[idx]['mask'] = self.cache[idx]['mask'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
 
         sample = {
             'rgb': self.cache[idx]['rgb'],
@@ -359,29 +354,18 @@ class EpiDatasetCrop(Dataset):
         return sample
 
 
-
 class EpiveyorPathNet(nn.Module):  # vgg version
     def __init__(self, input_nc, output_nc):
         super(EpiveyorPathNet, self).__init__()
 
         self.output_nc = output_nc
 
-        self.layer_1_3D = self.convblock3D(input_nc, 1, 256, 5, 1)
-        self.layer_1_2D = self.convblock2D(256, 512, 3, 2)
-        self.layer_2 = self.convblock2D(512, 1024, 3)
-        self.layer_3 = self.convblock2D(1280, 512, 3)
-        self.layer_4 = self.convblock2D(512, 256, 3)
-        self.layer_5 = self.lastblock(256,1)
+        self.layer_1_3D = self.convblock3D(input_nc, 1, 128, 3, 1)
+        self.layer_2_1 = self.convblock2D(128, 64, 7)
+        self.layer_2_2 = self.convblock2D(128, 64, 5)
+        self.layer_2_3 = self.convblock2D(128, 64, 3)
+        self.layer_end = self.lastblock(192, 1)
 
-        #
-        # self.layer_2 = self.convblock2D(256, 256, 3,2)
-        # self.layer_3 = self.convblock2D(256, 512, 3,2)
-        #
-        # self.layer_up_3 = self.convblock2D(512, 256, 3, 1)
-        # self.layer_up_2 = self.convblock2D(512, 256, 3, 1)
-        # self.layer_up_1 = self.convblock2D(512, 128, 3, 1)
-        #
-        # self.layer_pred = self.lastblock(128,1)
 
     def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3, stride=2):
         block = []
@@ -391,8 +375,8 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         block += [nn.LeakyReLU()]
         block += [nn.Conv3d(out_dim, out_dim, kernel_size=(5, 3, 3), stride=1, padding=0)]
         block += [nn.ReplicationPad3d((1, 1, 1, 1, 0, 0))]
-        block += [nn.BatchNorm3d(out_dim)]
-        block += [nn.LeakyReLU()]
+        # block += [nn.BatchNorm3d(out_dim)]
+        # block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
 
@@ -405,8 +389,8 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         block += [nn.LeakyReLU()]
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=(kernel, kernel), stride=1,
                             padding=int((kernel - 1) / 2))]
-        block += [nn.BatchNorm2d(out_dim)]
-        block += [nn.LeakyReLU()]
+        # block += [nn.BatchNorm2d(out_dim)]
+        # block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
 
@@ -430,7 +414,6 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         temp = nn.functional.upsample(disp, [nh, nw], mode='nearest')
 
         return temp
-
 
     def gradient_x(self, img):
         gx = img[:, :, :, :-1] - img[:, :, :, 1:]
@@ -475,28 +458,22 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         l1_3d_u = self.layer_1_3D(xu)
         self.debugPrint("L1 3D Unsq.:", l1_3d_u.shape)
 
-        l1_3d = torch.squeeze(l1_3d_u,2)
+        l1_3d = torch.squeeze(l1_3d_u, 2)
         self.debugPrint("L1 3D:", l1_3d.shape)
 
-        l1_2d = self.layer_1_2D(l1_3d)
-        self.debugPrint("L1 2D:", l1_2d.shape)
+        l2_1 = self.layer_2_1(l1_3d)
+        self.debugPrint("L2-1:", l2_1.shape)
 
-        l2 = self.layer_2(l1_2d)
+        l2_2 = self.layer_2_2(l1_3d)
+        self.debugPrint("L2-2:", l2_2.shape)
+
+        l2_3 = self.layer_2_3(l1_3d)
+        self.debugPrint("L2-3:", l2_3.shape)
+
+        l2 = torch.cat((l2_1, l2_2, l2_3), 1)
         self.debugPrint("L2:", l2.shape)
 
-        l2_up = self.upsample_(l2, 2)
-        self.debugPrint("L2 UP:", l2_up.shape)
+        l_end = self.layer_end(l2)
+        self.debugPrint("LEND:", l_end.shape)
 
-        l2_plus = torch.cat((l2_up, l1_3d),1)
-        self.debugPrint("L2 ++:", l2_plus.shape)
-
-        l3 = self.layer_3(l2_plus)
-        self.debugPrint("L3:", l3.shape)
-
-        l4 = self.layer_4(l3)
-        self.debugPrint("L4:", l4.shape)
-
-        l5 = self.layer_5(l4)
-        self.debugPrint("L5:", l5.shape)
-
-        return l5
+        return l_end
