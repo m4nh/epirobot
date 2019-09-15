@@ -24,7 +24,7 @@ checkpoint_path = 'media/Checkpoints'
 net = EpiveyorPathNet(16, 1)
 
 
-summary(net,input_size=(16,32,32))
+# summary(net,input_size=(16,32,32))
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
