@@ -160,5 +160,5 @@ for epoch in range(5001):
             if index >= max_stack:
                 break
 
-    # print("SHAPE", map_pred.shape)
-    cv2.imwrite("/tmp/predictions.png", stack)
+        # print("SHAPE", map_pred.shape)
+        cv2.imwrite("/tmp/predictions.png", stack)
