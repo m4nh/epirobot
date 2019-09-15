@@ -23,6 +23,11 @@ checkpoint_path = 'media/Checkpoints'
 
 net = EpiveyorPathNet(16, 1)
 
+last_model_path = os.path.join(checkpoint_path, "last_model.pb")
+if os.path.exists(last_model_path):
+    net.load_state_dict(torch.load(last_model_path))
+    print("*" * 10, "MODEL LOADED!", "*" * 10)
+
 # summary(net,input_size=(16,32,32))
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -42,7 +47,6 @@ dataset_test = EpiDatasetCrop(folder='/tmp/gino/', crop_size=32, max_depth=16)
 
 training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
-
 
 for epoch in range(50001):
 
