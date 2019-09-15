@@ -366,11 +366,12 @@ class EpiveyorPathNet(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.layer_1_3D = self.convblock3D(input_nc, 1, 128, 5, 1)
-        self.layer_1_2D = self.convblock2D(128, 256, 3, 2)
-        self.layer_2 = self.convblock2D(256, 256, 3)
-        self.layer_3 = self.convblock2D(384, 128, 3)
-        self.layer_4 = self.lastblock(128,1)
+        self.layer_1_3D = self.convblock3D(input_nc, 1, 256, 5, 1)
+        self.layer_1_2D = self.convblock2D(256, 512, 3, 2)
+        self.layer_2 = self.convblock2D(512, 1024, 3)
+        self.layer_3 = self.convblock2D(1280, 512, 3)
+        self.layer_4 = self.convblock2D(512, 256, 3)
+        self.layer_5 = self.lastblock(256,1)
 
         #
         # self.layer_2 = self.convblock2D(256, 256, 3,2)
@@ -385,11 +386,12 @@ class EpiveyorPathNet(nn.Module):  # vgg version
     def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3, stride=2):
         block = []
 
-        block += [nn.Conv3d(1, 128, kernel_size=(depth_dim, 5, 5), stride=1, padding=2)]
+        block += [nn.Conv3d(1, out_dim, kernel_size=(depth_dim, 5, 5), stride=1, padding=2)]
         block += [nn.LeakyReLU()]
         block += [nn.BatchNorm3d(out_dim)]
-        block += [nn.Conv3d(128, 128, kernel_size=(5, 3, 3), stride=1, padding=0)]
+        block += [nn.Conv3d(out_dim, out_dim, kernel_size=(5, 3, 3), stride=1, padding=0)]
         block += [nn.ReplicationPad3d((1, 1, 1, 1, 0, 0))]
+        block += [nn.BatchNorm3d(out_dim)]
 
         return nn.Sequential(*block)
 
@@ -403,6 +405,7 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=(kernel, kernel), stride=1,
                             padding=int((kernel - 1) / 2))]
         block += [nn.LeakyReLU()]
+        block += [nn.BatchNorm2d(out_dim)]
 
         return nn.Sequential(*block)
 
@@ -491,5 +494,8 @@ class EpiveyorPathNet(nn.Module):  # vgg version
 
         l4 = self.layer_4(l3)
         self.debugPrint("L4:", l4.shape)
+
+        l5 = self.layer_5(l4)
+        self.debugPrint("L5:", l5.shape)
 
         return l4
