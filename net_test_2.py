@@ -150,6 +150,7 @@ for epoch in range(50001):
     print("Loss Grad", cumulative_loss['loss3'] / counter)
     print("Loss", cumulative_loss['loss'] / counter)
 
+
     #
 
     if epoch % 10 == 0 and epoch > 0:
@@ -183,3 +184,6 @@ for epoch in range(50001):
 
         # print("SHAPE", map_pred.shape)
         cv2.imwrite("/tmp/predictions.png", stack)
+
+
+    os.system("clear")
