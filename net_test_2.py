@@ -59,7 +59,7 @@ for epoch in range(5001):
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
 
-    cumulative_loss = {'loss1':0.0, 'loss2':0.0, 'loss':0.0}
+    cumulative_loss = {'loss1': 0.0, 'loss2': 0.0, 'loss': 0.0}
     counter = 0.0
     for index, batch in enumerate(training_generator):
         net.train()
@@ -88,7 +88,7 @@ for epoch in range(5001):
             # print("INPUT", input.shape)
             output = net(input)
 
-            input_unsqueeze = torch.unsqueeze(input[:,0,::],1)
+            input_unsqueeze = torch.unsqueeze(input[:, 0, ::], 1)
             # input_unsqueeze = input
             # img = (input_unsqueeze[0][0].detach().cpu().numpy()*255.).astype(np.uint8)
             # cv2.imshow("image",img)
@@ -112,7 +112,7 @@ for epoch in range(5001):
             # loss = loss1 + 1000 * loss2
 
             loss1 = criterion(output, target)
-            loss2 = torch.mean(torch.abs(smoothness))
+            loss2 = 10.0 * torch.mean(torch.abs(smoothness))
             loss = loss1 + loss2
             # print("loss:",loss1,loss2,loss)
 
