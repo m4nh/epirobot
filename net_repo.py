@@ -330,25 +330,25 @@ class EpiDatasetCrop(Dataset):
 
     def __getitem__(self, idx):
 
-        # if idx not in self.cache:
-        self.cache[idx] = {}
-        self.cache[idx]['rgb'] = self.loadRGB(self.subfolders[idx])
-        self.cache[idx]['depth'] = self.loadDepth(self.subfolders[idx])
-        self.cache[idx]['mask'] = self.buildMask(self.cache[idx]['depth'])
+        if idx not in self.cache:
+            self.cache[idx] = {}
+            self.cache[idx]['rgb'] = self.loadRGB(self.subfolders[idx])
+            self.cache[idx]['depth'] = self.loadDepth(self.subfolders[idx])
+            self.cache[idx]['mask'] = self.buildMask(self.cache[idx]['depth'])
 
         d, h, w = self.cache[idx]['rgb'].shape[:3]
 
         ri = np.random.randint(0, h - self.crop_size - 1)
         rj = np.random.randint(0, w - self.crop_size - 1)
 
-        self.cache[idx]['rgb'] = self.cache[idx]['rgb'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
-        self.cache[idx]['depth'] = self.cache[idx]['depth'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
-        self.cache[idx]['mask'] = self.cache[idx]['mask'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
+        # self.cache[idx]['rgb'] = self.cache[idx]['rgb'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
+        # self.cache[idx]['depth'] = self.cache[idx]['depth'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
+        # self.cache[idx]['mask'] = self.cache[idx]['mask'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
 
         sample = {
-            'rgb': self.cache[idx]['rgb'],
-            'depth': self.cache[idx]['depth'],
-            'mask': self.cache[idx]['mask']
+            'rgb': self.cache[idx]['rgb'][:, ri:ri + self.crop_size, rj:rj + self.crop_size],
+            'depth': self.cache[idx]['depth'][:, ri:ri + self.crop_size, rj:rj + self.crop_size],
+            'mask': self.cache[idx]['mask'][:, ri:ri + self.crop_size, rj:rj + self.crop_size]
         }
 
         return sample
