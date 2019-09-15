@@ -401,7 +401,7 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         block += [nn.LeakyReLU()]
         block += [nn.BatchNorm2d(out_dim)]
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
-        block += [nn.Sigmoid()]
+        # block += [nn.Sigmoid()]
 
         return nn.Sequential(*block)
 
@@ -440,6 +440,12 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         smoothness_y = torch.nn.functional.pad(smoothness_y, (0, 0, 0, 1, 0, 0, 0, 0), mode='constant')
 
         return torch.abs(smoothness_x) + torch.abs(smoothness_y)
+
+    def getTargetGradient(self, target):
+        gx = torch.nn.functional.pad(self.gradient_x(target), (0, 1, 0, 0, 0, 0, 0, 0), mode='constant')
+        gy = torch.nn.functional.pad(self.gradient_y(target), (0, 0, 0, 1, 0, 0, 0, 0), mode='constant')
+        g = torch.abs(gx + gy)
+        return g
 
     def debugPrint(self, label, *argv):
         # debug = True

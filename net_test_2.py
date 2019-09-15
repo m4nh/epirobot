@@ -64,7 +64,7 @@ for epoch in range(50001):
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
 
-    cumulative_loss = {'loss1': 0.0, 'loss2': 0.0, 'loss': 0.0}
+    cumulative_loss = {'loss1': 0.0, 'loss2': 0.0,'loss3':0.0, 'loss': 0.0}
     counter = 0.0
     for index, batch in enumerate(training_generator):
         net.train()
@@ -74,6 +74,18 @@ for epoch in range(50001):
         target = batch['depth']
         mask = batch['mask']
 
+        #
+        # img = target[0][0]
+        #
+        # gx = torch.nn.functional.pad(net.gradient_x(target), (0, 1, 0, 0, 0, 0, 0, 0), mode='constant')
+        # gy = torch.nn.functional.pad(net.gradient_y(target), (0, 0, 0, 1, 0, 0, 0, 0), mode='constant')
+        #
+        # print("GRADY", gx.shape, gy.shape)
+        # imgd = (gx + gy)[0][0]
+        #
+        # cv2.imshow("depth", np.uint8(img*255))
+        # cv2.imshow("depthd", np.uint8(imgd * 255))
+        # cv2.waitKey(0)
         # print("INPUT", input[0].shape)
         # print(input.shape)
         # target = target * mask
@@ -116,9 +128,11 @@ for epoch in range(50001):
             # loss2 = criterion(output_foreground, target_foreground)
             # loss = loss1 + 1000 * loss2
 
+
             loss1 = criterion(output, target)
             loss2 = 0.5 * torch.mean(torch.abs(smoothness))
-            loss = loss1 + loss2
+            loss3 = criterion(net.getTargetGradient(target), net.getTargetGradient(output))
+            loss = loss1 + loss2 + loss3
             # print("loss:",loss1,loss2,loss)
 
             loss.backward()
@@ -126,12 +140,14 @@ for epoch in range(50001):
 
             cumulative_loss['loss1'] += loss1.detach().cpu().numpy()
             cumulative_loss['loss2'] += loss2.detach().cpu().numpy()
+            cumulative_loss['loss3'] += loss3.detach().cpu().numpy()
             cumulative_loss['loss'] += loss.detach().cpu().numpy()
             counter += 1.0
             print("Batch: {}/{}".format(index, len(training_generator)))
 
     print("Loss Depth", cumulative_loss['loss1'] / counter)
     print("Loss Smooth", cumulative_loss['loss2'] / counter)
+    print("Loss Grad", cumulative_loss['loss3'] / counter)
     print("Loss", cumulative_loss['loss'] / counter)
 
     #
