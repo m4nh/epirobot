@@ -120,7 +120,7 @@ for epoch in range(5001):
     #
 
     stack = None
-    max_stack = 10
+    max_stack = 32
     print("∞" * 20)
     print("TEST " * 20)
     for index, batch in enumerate(validation_generator):
