@@ -387,11 +387,12 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         block = []
 
         block += [nn.Conv3d(1, out_dim, kernel_size=(depth_dim, 5, 5), stride=1, padding=2)]
-        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm3d(out_dim)]
+        block += [nn.LeakyReLU()]
         block += [nn.Conv3d(out_dim, out_dim, kernel_size=(5, 3, 3), stride=1, padding=0)]
         block += [nn.ReplicationPad3d((1, 1, 1, 1, 0, 0))]
         block += [nn.BatchNorm3d(out_dim)]
+        block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
 
@@ -400,12 +401,12 @@ class EpiveyorPathNet(nn.Module):  # vgg version
 
         block += [nn.Conv2d(in_dim, out_dim, kernel_size=(kernel, kernel), stride=stride,
                             padding=int((kernel - 1) / 2))]
-        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm2d(out_dim)]
+        block += [nn.LeakyReLU()]
         block += [nn.Conv2d(out_dim, out_dim, kernel_size=(kernel, kernel), stride=1,
                             padding=int((kernel - 1) / 2))]
-        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm2d(out_dim)]
+        block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
 
