@@ -488,7 +488,7 @@ class EpiveyorPathNet(nn.Module):  # vgg version
 
 class EpiveyorPatchNet2D(nn.Module):  # vgg version
     def __init__(self, input_nc, output_nc):
-        super(EpiveyorPatchNet, self).__init__()
+        super(EpiveyorPatchNet2D, self).__init__()
 
         self.output_nc = output_nc
 
