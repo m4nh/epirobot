@@ -16,13 +16,13 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import cv2
-from net_repo import EpiDatasetCrop, EpiveyorNet, EpiveyorPathNet
+from net_repo import EpiDatasetCrop, EpiveyorNet, EpiveyorPatchNet2D
 from torchsummary import summary
 import time
 
 checkpoint_path = 'media/Checkpoints'
 
-net = EpiveyorPathNet(16, 1)
+net = EpiveyorPatchNet2D(16, 1)
 
 last_model_path = os.path.join(checkpoint_path, "last_model.pb")
 if os.path.exists(last_model_path):
@@ -43,8 +43,8 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 
 criterion = nn.L1Loss()
 
-dataset = EpiDatasetCrop(folder='/tmp/gino/', crop_size=16, max_depth=16)
-dataset_test = EpiDatasetCrop(folder='/tmp/gino/', crop_size=16, max_depth=16)
+dataset = EpiDatasetCrop(folder='/tmp/gino/', crop_size=32, max_depth=16)
+dataset_test = EpiDatasetCrop(folder='/tmp/gino_test/', crop_size=32, max_depth=16)
 
 training_generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
