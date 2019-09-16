@@ -44,7 +44,7 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 criterion = nn.L1Loss()
 
 dataset = EpiDatasetCrop(folder='/tmp/gino/', crop_size=32, max_depth=16)
-dataset_test = EpiDatasetCrop(folder='/tmp/gino/', crop_size=32, max_depth=16)
+dataset_test = EpiDatasetCrop(folder='/tmp/gino_test/', crop_size=32, max_depth=16)
 
 training_generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
