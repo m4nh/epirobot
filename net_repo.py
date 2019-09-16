@@ -366,7 +366,6 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         self.layer_2_3 = self.convblock2D(128, 64, 3)
         self.layer_end = self.lastblock(192, 1)
 
-
     def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3, stride=2):
         block = []
 
@@ -485,22 +484,24 @@ class EpiveyorPathNet(nn.Module):  # vgg version
         return l_end
 
 
-
 class EpiveyorPatchNet2D(nn.Module):  # vgg version
     def __init__(self, input_nc, output_nc):
         super(EpiveyorPatchNet2D, self).__init__()
 
         self.output_nc = output_nc
 
-        self.layer_1_1 = self.convblock2D(input_nc, 256, 5)
-        self.layer_1_2 = self.convblock2D(input_nc, 256, 3)
-        self.layer_1_3 = self.convblock2D(input_nc, 256, 2)
-        self.layer_end = self.lastblock(256*3, 1)
+        self.layer_1_1 = self.convblock2D(input_nc, 256, 5, 2)
+        self.layer_1_2 = self.convblock2D(input_nc, 256, 3, 2)
+        self.layer_1_3 = self.convblock2D(input_nc, 256, 2, 2)
+        self.layer_2 = self.convblock2D(256 * 3, 1024, 3, 2)
+        self.layer_3 = self.convblock2D(1024, 512, 3)
+        self.layer_4 = self.convblock2D(512, 256, 3)
+
+        self.layer_end = self.lastblock(256, 1)
         # self.layer_2_1 = self.convblock2D(128, 64, 7)
         # self.layer_2_2 = self.convblock2D(128, 64, 5)
         # self.layer_2_3 = self.convblock2D(128, 64, 3)
         # self.layer_end = self.lastblock(192, 1)
-
 
     def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3, stride=2):
         block = []
@@ -599,13 +600,23 @@ class EpiveyorPatchNet2D(nn.Module):  # vgg version
         l1_2 = self.layer_1_2(x)
         self.debugPrint("L1_2:", l1_2.shape)
 
-        l1_3 = torch.nn.functional.pad(self.layer_1_3(x), (1, 1, 1, 1, 0, 0, 0, 0), mode='constant')
+        l1_3 = torch.nn.functional.pad(self.layer_1_3(x), (1, 0, 1, 0), mode='replicate')
+        # l1_3 = self.layer_1_3(x)
         self.debugPrint("L1_3:", l1_3.shape)
 
-        l1 = torch.cat((l1_1,l1_2,l1_3),1)
+        l1 = torch.cat((l1_1, l1_2, l1_3), 1)
         self.debugPrint("L1:", l1.shape)
 
-        l_end = self.layer_end(l1)
+        l2 = self.layer_2(l1)
+        self.debugPrint("L2:", l2.shape)
+
+        l3 = self.layer_3(self.upsample_(l2, 2))
+        self.debugPrint("L3:", l3.shape)
+
+        l4 = self.layer_4(self.upsample_(l3, 2))
+        self.debugPrint("L4:", l4.shape)
+
+        l_end = self.layer_end(l4)
         self.debugPrint("LEND:", l_end.shape)
         # l1_3d = torch.squeeze(l1_3d_u, 2)
         # self.debugPrint("L1 3D:", l1_3d.shape)
