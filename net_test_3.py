@@ -38,7 +38,7 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.0000001
+lr = 0.01
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
 criterion = nn.L1Loss()
