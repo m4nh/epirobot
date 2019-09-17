@@ -183,11 +183,11 @@ for epoch in range(50001):
 
             net.eval()
             input = batch['rgb']
-            target = batch['depth']
+            target = batch['depth'].detach()
 
             input = input.to(device)
 
-            output = net(input)
+            output = net(input).detach()
 
             map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 0), cv2.COLORMAP_JET)
