@@ -72,7 +72,7 @@ for epoch in range(50001):
 
     print("EPOCH", epoch)
 
-    if epoch % 10 == 0 and epoch > 0:
+    if epoch % 2 == 0 and epoch > 0:
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
         # torch.save(net.state_dict(), os.path.join(checkpoint_path, "saved_epoch_{}.pb".format(epoch)))
@@ -174,7 +174,7 @@ for epoch in range(50001):
 
     #
 
-    if epoch % 10 == 0 and epoch > 0:
+    if epoch % 2 == 0 and epoch > 0:
         stack = None
         max_stack = 32
         print("∞" * 20)
@@ -183,7 +183,7 @@ for epoch in range(50001):
 
             net.eval()
             input = batch['rgb']
-            target = batch['depth'].cpu().numpy()
+            target = batch['depth']
 
             input = input.to(device)
 
