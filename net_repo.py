@@ -889,8 +889,8 @@ class UEpiNet(nn.Module):  # vgg version
         return g
 
     def debugPrint(self, label, *argv):
-        debug = True
-        if debug: print(label.ljust(15), *argv)
+        # debug = True
+        # if debug: print(label.ljust(15), *argv)
         pass
 
     def forward(self, x):
