@@ -95,7 +95,7 @@ for epoch in range(50001):
 
         input = batch['rgb']
         target = batch['depth']
-        mask = batch['mask']
+        # mask = batch['mask']
 
         #
         # img = target[0][0]

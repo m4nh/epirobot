@@ -180,7 +180,6 @@ class EpiDataset(Dataset):
 
         ri = np.random.randint(0, h - self.crop_size - 1)
         rj = np.random.randint(0, w - self.crop_size - 1)
-        print("JW", stack.shape,dstack.shape,  h, w, ri, rj)
 
         stack = stack[:, :, ri:ri + self.crop_size, rj:rj + self.crop_size]
         dstack = dstack[:, ri:ri + self.crop_size, rj:rj + self.crop_size]
