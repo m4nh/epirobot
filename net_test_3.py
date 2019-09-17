@@ -177,7 +177,7 @@ for epoch in range(50001):
 
     #
 
-    if epoch % 10 == 0 and epoch > 0:
+    if epoch % 2 == 0 and epoch > 0:
         stack = None
         max_stack = 32
         print("∞" * 20)
@@ -192,10 +192,8 @@ for epoch in range(50001):
 
             output = net(input).detach()
 
-            print("TG", dataset.displayableDepth(target[0], 0).shape, np.min(dataset.displayableDepth(target[0], 0)),
-                  np.max(dataset.displayableDepth(target[0], 0)))
-
-            print("OUT",dataset.displayableDepth(output[0], 0).shape, np.min(dataset.displayableDepth(output[0], 0)), np.max(dataset.displayableDepth(output[0], 0)))
+            print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
+            print("OPUT", output[0].shape, np.min(toutputarget[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
             map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 0), cv2.COLORMAP_JET)
