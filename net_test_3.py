@@ -187,7 +187,7 @@ for epoch in range(50001):
 
             input = input.to(device)
 
-            output = net(input).detach().cpu().numpy()
+            output = net(input)
 
             map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 0), cv2.COLORMAP_JET)
