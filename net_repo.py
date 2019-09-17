@@ -808,17 +808,17 @@ class UEpiNet(nn.Module):  # vgg version
         block = []
 
         block += [nn.Conv3d(in_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
-        block += [nn.PReLU()]
+        block += [nn.LeakyReLU()]
         block += [nn.BatchNorm3d(out_dim)]
 
         block += [nn.Conv3d(out_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
-        block += [nn.PReLU()]
+        block += [nn.LeakyReLU()]
 
         block += [nn.Conv3d(out_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
-        block += [nn.PReLU()]
+        block += [nn.LeakyReLU()]
         #
         block += [nn.Conv3d(out_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
-        block += [nn.PReLU()]
+        block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
 

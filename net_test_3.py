@@ -177,9 +177,9 @@ for epoch in range(50001):
 
     #
 
-    if epoch % 1 == 0 and epoch > 0:
+    if epoch % 5 == 0 and epoch > 0:
         stack = None
-        max_stack = 32
+        max_stack = 10
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(validation_generator):
