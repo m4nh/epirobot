@@ -213,4 +213,4 @@ for epoch in range(50001):
         cv2.imwrite("/tmp/predictions.png", stack)
 
 
-    os.system("clear")
+    # os.system("clear")
