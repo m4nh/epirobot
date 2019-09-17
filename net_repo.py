@@ -941,5 +941,7 @@ class UEpiNet(nn.Module):  # vgg version
 
         last = self.last(ul1)
         self.debugPrint("LAST :", last.shape)
+        last = torch.squeeze(last, 2)
+        self.debugPrint("LAST Un :", last.shape)
 
-        return torch.squeeze(last, 1)
+        return last
