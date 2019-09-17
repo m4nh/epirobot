@@ -20,7 +20,10 @@ from net_repo import EpiDatasetCrop, UEpiNet
 from torchsummary import summary
 import time
 from epidataset import EpiDataset
+import sys
 
+learning_rate = float(sys.argv[1]) if len(sys.argv) > 1 else: 0.001
+print("LEARNING RATE ", learning_rate)
 checkpoint_path = 'media/Checkpoints'
 
 net = UEpiNet(16, 1)
@@ -63,7 +66,7 @@ net = net.to(device)
 for param in net.parameters():
     param.requires_grad = True
 
-lr = 0.001
+lr = learning_rate
 optimizer = optim.Adam(net.parameters(), lr=lr)
 
 criterion = nn.L1Loss()
