@@ -192,6 +192,11 @@ for epoch in range(50001):
 
             output = net(input).detach()
 
+            print("TG", dataset.displayableDepth(target[0], 0).shape, np.min(dataset.displayableDepth(target[0], 0)),
+                  np.max(dataset.displayableDepth(target[0], 0)))
+
+            print("OUT",dataset.displayableDepth(output[0], 0).shape, np.min(dataset.displayableDepth(output[0], 0)), np.max(dataset.displayableDepth(output[0], 0)))
+
             map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 0), cv2.COLORMAP_JET)
             # map_gt = (target[0][0] * 255).astype(np.uint8)
