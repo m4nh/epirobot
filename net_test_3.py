@@ -48,7 +48,7 @@ criterion = nn.L1Loss()
 dataset = EpiDataset(folder='/tmp/gino')
 dataset_test = EpiDataset(folder='/tmp/gino')
 
-training_generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
+training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
 
