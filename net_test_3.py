@@ -22,7 +22,7 @@ import time
 from epidataset import EpiDataset
 import sys
 
-learning_rate = float(sys.argv[1]) if len(sys.argv) > 1 else: 0.001
+learning_rate = float(sys.argv[1]) if len(sys.argv) > 1 else 0.001
 print("LEARNING RATE ", learning_rate)
 checkpoint_path = 'media/Checkpoints'
 
