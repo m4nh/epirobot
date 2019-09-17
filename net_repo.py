@@ -791,7 +791,7 @@ class UEpiNet(nn.Module):  # vgg version
         self.uplayer_2_U = self.upconv3D(32, 16, 2)
         self.uplayer_1 = self.convblock3D(11, 32, 16, 3)
 
-        self.last = self.endblock(11, 16, 1, 3)
+        self.last = self.endblock(11, 16, 11, 3)
         # self.uplayer_4 = self.convblock3D(11, 64, 64, 3, 2)
 
         # self.layer_5 = self.convblock3D(11, 64)
@@ -839,7 +839,7 @@ class UEpiNet(nn.Module):  # vgg version
     def endblock(self, depth_dim, in_dim, out_dim, kernel=3):
         block = []
 
-        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
+        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(depth_dim, kernel, kernel), stride=1, padding=(0,1,1))]
         # block += [nn.BatchNorm3d(out_dim)]
         # block += [nn.LeakyReLU()]
 
@@ -889,8 +889,8 @@ class UEpiNet(nn.Module):  # vgg version
         return g
 
     def debugPrint(self, label, *argv):
-        # debug = True
-        # if debug: print(label.ljust(15), *argv)
+        debug = True
+        if debug: print(label.ljust(15), *argv)
         pass
 
     def forward(self, x):
