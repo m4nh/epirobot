@@ -783,13 +783,13 @@ class UEpiNet(nn.Module):  # vgg version
         self.layer_3_D = self.downconv3D(64, 64, 2)
         self.layer_4 = self.convblock3D(11, 64, 64, 3)
 
-        self.layer_4_U = self.upconv3D(64, 2)
+        self.layer_4_U = self.upconv3D(64, 64, 2)
 
         self.uplayer_3 = self.convblock3D(11, 64 + 64, 64, 3)
-        self.uplayer_3_U = self.upconv3D(64, 2)
-        self.uplayer_2 = self.convblock3D(11, 64 + 32, 32, 3)
-        self.uplayer_2_U = self.upconv3D(32, 2)
-        self.uplayer_1 = self.convblock3D(11, 32 + 16, 16, 3)
+        self.uplayer_3_U = self.upconv3D(64, 32, 2)
+        self.uplayer_2 = self.convblock3D(11, 64, 32, 3)
+        self.uplayer_2_U = self.upconv3D(32, 16, 2)
+        self.uplayer_1 = self.convblock3D(11, 16, 16, 3)
 
         self.last = self.endblock(11, 16, 1, 3)
         # self.uplayer_4 = self.convblock3D(11, 64, 64, 3, 2)
@@ -829,9 +829,9 @@ class UEpiNet(nn.Module):  # vgg version
 
         return nn.Sequential(*block)
 
-    def upconv3D(self, out_dim, stride=2):
+    def upconv3D(self, in_dim, out_dim, stride=2):
         block = [
-            nn.ConvTranspose3d(out_dim, out_dim, kernel_size=(1, stride, stride), stride=(1, stride, stride),
+            nn.ConvTranspose3d(in_dim, out_dim, kernel_size=(1, stride, stride), stride=(1, stride, stride),
                                padding=(0, 0, 0))]
 
         return nn.Sequential(*block)
