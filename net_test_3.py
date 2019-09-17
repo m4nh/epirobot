@@ -25,12 +25,10 @@ checkpoint_path = 'media/Checkpoints'
 
 net = UEpiNet(16, 1)
 
-
 # input = torch.rand(1,3,11,200,200)
 # print(input.shape)
 #
 # output = net(input)
-
 
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -50,7 +48,6 @@ dataset_test = EpiDataset(folder='/tmp/gino')
 
 training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
-
 
 last_model_path = os.path.join(checkpoint_path, "last_model.pb")
 if os.path.exists(last_model_path):
@@ -87,7 +84,7 @@ for epoch in range(50001):
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
 
-    cumulative_loss = {'loss1': 0.0, 'loss2': 0.0,'loss3':0.0, 'loss': 0.0}
+    cumulative_loss = {'loss1': 0.0, 'loss2': 0.0, 'loss3': 0.0, 'loss': 0.0}
     counter = 0.0
     for index, batch in enumerate(training_generator):
         net.train()
@@ -169,9 +166,6 @@ for epoch in range(50001):
             counter += 1.0
             # print("Batch: {}/{}".format(index, len(training_generator)))
 
-
-
-
     # print("Loss Depth", cumulative_loss['loss1'] / counter)
     # print("Loss Smooth", cumulative_loss['loss2'] / counter)
     # print("Loss Grad", cumulative_loss['loss3'] / counter)
@@ -195,8 +189,10 @@ for epoch in range(50001):
 
             output = net(input).detach().cpu().numpy()
 
-            map_gt = (target[0][0] * 255).astype(np.uint8)
-            map_pred = (output[0][0] * 255).astype(np.uint8)
+            map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
+            map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 0), cv2.COLORMAP_JET)
+            # map_gt = (target[0][0] * 255).astype(np.uint8)
+            # map_pred = (output[0][0] * 255).astype(np.uint8)
 
             map = np.vstack((map_gt, map_pred))
 
@@ -211,6 +207,5 @@ for epoch in range(50001):
 
         # print("SHAPE", map_pred.shape)
         cv2.imwrite("/tmp/predictions.png", stack)
-
 
     # os.system("clear")
