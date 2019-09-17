@@ -677,7 +677,6 @@ class EpiRubikNet(nn.Module):  # vgg version
         block += [nn.BatchNorm2d(out_dim)]
         block += [nn.LeakyReLU()]
 
-
         return nn.Sequential(*block)
 
     def lastblock(self, in_dim, out_dim):
@@ -743,7 +742,7 @@ class EpiRubikNet(nn.Module):  # vgg version
         debug = True
 
         x_A = x
-        x_B = x.permute(0,2,1,3)
+        x_B = x.permute(0, 2, 1, 3)
 
         self.debugPrint("x_A:", x_A.shape)
         self.debugPrint("x_B:", x_B.shape)
@@ -754,7 +753,7 @@ class EpiRubikNet(nn.Module):  # vgg version
         l1_B = self.layer_1_B(x_B)
         self.debugPrint("L1_B:", l1_B.shape)
 
-        l1 = torch.cat((l1_A,l1_B),1)
+        l1 = torch.cat((l1_A, l1_B), 1)
         self.debugPrint("L1:", l1.shape)
 
         l2 = self.layer_2(l1)
@@ -767,5 +766,190 @@ class EpiRubikNet(nn.Module):  # vgg version
         l_end = self.layer_end(l4)
         self.debugPrint("LEND:", l_end.shape)
 
-
         return l_end
+
+
+class UEpiNet(nn.Module):  # vgg version
+    def __init__(self, input_nc, output_nc):
+        super(UEpiNet, self).__init__()
+
+        self.output_nc = output_nc
+
+        self.layer_1 = self.convblock3D(11, 3, 16, 3)
+        self.layer_1_D = self.downconv3D(16, 2)
+        self.layer_2 = self.convblock3D(11, 16, 32, 3)
+        self.layer_2_D = self.downconv3D(32, 2)
+        self.layer_3 = self.convblock3D(11, 32, 64, 3)
+        self.layer_3_D = self.downconv3D(64, 2)
+        self.layer_4 = self.convblock3D(11, 64, 64, 3)
+
+        self.layer_4_U = self.upconv3D(64, 2)
+
+        self.uplayer_3 = self.convblock3D(11, 64 + 64, 64, 3)
+        self.uplayer_3_U = self.upconv3D(64, 2)
+        self.uplayer_2 = self.convblock3D(11, 64 + 32, 32, 3)
+        self.uplayer_2_U = self.upconv3D(32, 2)
+        self.uplayer_1 = self.convblock3D(11, 32 + 16, 16, 3)
+
+        self.last = self.endblock(11,16,1,3)
+        # self.uplayer_4 = self.convblock3D(11, 64, 64, 3, 2)
+
+        # self.layer_5 = self.convblock3D(11, 64)
+
+        # self.layer_3 = self.convblock2D(11, 32, 64)
+        # self.layer_4 = self.convblock2D(128, 64, 3)
+        # self.layer_end = self.lastblock(64, 1)
+        # self.layer_2_1 = self.convblock2D(128, 64, 7)
+        # self.layer_2_2 = self.convblock2D(128, 64, 5)
+        # self.layer_2_3 = self.convblock2D(128, 64, 3)
+        # self.layer_end = self.lastblock(192, 1)
+
+    def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3):
+        block = []
+
+        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
+        block += [nn.BatchNorm3d(out_dim)]
+        block += [nn.LeakyReLU()]
+
+        block += [nn.Conv3d(out_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
+        block += [nn.LeakyReLU()]
+
+        block += [nn.Conv3d(out_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
+        block += [nn.LeakyReLU()]
+
+        block += [nn.Conv3d(out_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
+        block += [nn.LeakyReLU()]
+
+        return nn.Sequential(*block)
+
+    def downconv3D(self, out_dim, stride=2):
+        block = [
+            nn.Conv3d(out_dim, out_dim, kernel_size=(1, stride, stride), stride=(1, stride, stride),
+                      padding=(0, 0, 0))]
+
+        return nn.Sequential(*block)
+
+    def upconv3D(self, out_dim, stride=2):
+        block = [
+            nn.ConvTranspose3d(out_dim, out_dim, kernel_size=(1, stride, stride), stride=(1, stride, stride),
+                               padding=(0, 0, 0))]
+
+        return nn.Sequential(*block)
+
+    def endblock(self, depth_dim, in_dim, out_dim, kernel=3):
+        block = []
+
+        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(kernel, kernel, kernel), stride=1, padding=1)]
+        # block += [nn.BatchNorm3d(out_dim)]
+        # block += [nn.LeakyReLU()]
+
+        return nn.Sequential(*block)
+
+    def lastblock(self, in_dim, out_dim):
+        block = []
+
+        block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        block += [nn.LeakyReLU()]
+        block += [nn.BatchNorm2d(out_dim)]
+        block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
+        # block += [nn.Sigmoid()]
+
+        return nn.Sequential(*block)
+
+    def upsample_(self, disp, ratio):
+        s = disp.size()
+        h = int(s[2])
+        w = int(s[3])
+        nh = h * ratio
+        nw = w * ratio
+        temp = nn.functional.upsample(disp, [nh, nw], mode='nearest')
+
+        return temp
+
+    def gradient_x(self, img):
+        gx = img[:, :, :, :-1] - img[:, :, :, 1:]
+        return gx
+
+    def gradient_y(self, img):
+        gy = img[:, :, :-1, :] - img[:, :, 1:, :]
+        return gy
+
+    def get_disparity_smoothness(self, disp, img):
+        disp_gradients_x = self.gradient_x(disp)
+        disp_gradients_y = self.gradient_y(disp)
+
+        image_gradients_x = self.gradient_x(img)
+        image_gradients_y = self.gradient_y(img)
+
+        weights_x = torch.exp(-torch.mean(torch.abs(image_gradients_x), 1, keepdim=True))
+        weights_y = torch.exp(-torch.mean(torch.abs(image_gradients_y), 1, keepdim=True))
+
+        smoothness_x = disp_gradients_x * weights_x
+        smoothness_y = disp_gradients_y * weights_y
+
+        smoothness_x = torch.nn.functional.pad(smoothness_x, (0, 1, 0, 0, 0, 0, 0, 0), mode='constant')
+        smoothness_y = torch.nn.functional.pad(smoothness_y, (0, 0, 0, 1, 0, 0, 0, 0), mode='constant')
+
+        return torch.abs(smoothness_x) + torch.abs(smoothness_y)
+
+    def getTargetGradient(self, target):
+        gx = torch.nn.functional.pad(self.gradient_x(target), (0, 1, 0, 0, 0, 0, 0, 0), mode='constant')
+        gy = torch.nn.functional.pad(self.gradient_y(target), (0, 0, 0, 1, 0, 0, 0, 0), mode='constant')
+        g = torch.abs(gx + gy)
+        return g
+
+    def debugPrint(self, label, *argv):
+        # debug = True
+        # if debug: print(label.ljust(15), *argv)
+        pass
+
+    def forward(self, x):
+        # 3x256x512
+        debug = True
+
+        self.debugPrint("x:", x.shape)
+
+        l1 = self.layer_1(x)
+        self.debugPrint("L1:", l1.shape)
+
+        l1_D = self.layer_1_D(l1)
+        self.debugPrint("L1 DOWN:", l1_D.shape)
+
+        l2 = self.layer_2(l1_D)
+        self.debugPrint("L2:", l2.shape)
+
+        l2_D = self.layer_2_D(l2)
+        self.debugPrint("L2 DOWN:", l2_D.shape)
+
+        l3 = self.layer_3(l2_D)
+        self.debugPrint("L3:", l3.shape)
+
+        l3_D = self.layer_3_D(l3)
+        self.debugPrint("L3 DOWN:", l3_D.shape)
+
+        l4 = self.layer_4(l3_D)
+        self.debugPrint("L4:", l4.shape)
+
+        l4_U = self.layer_4_U(l4)
+        self.debugPrint("L4 UP:", l4_U.shape)
+
+        ul3 = self.uplayer_3(torch.cat((l3, l4_U), 1))
+        self.debugPrint("UL3:", ul3.shape)
+
+        ul3_u = self.uplayer_3_U(ul3)
+        self.debugPrint("UL3 UP:", ul3_u.shape)
+
+        ul2 = self.uplayer_2(torch.cat((l2, ul3_u), 1))
+        self.debugPrint("UL2:", ul2.shape)
+
+        ul2_u = self.uplayer_2_U(ul2)
+        self.debugPrint("UL2 UP:", ul2_u.shape)
+        self.debugPrint("XXX:",torch.cat((l1, ul2_u),1).shape)
+
+        ul1 = self.uplayer_1(torch.cat((l1, ul2_u), 1))
+        self.debugPrint("UL1 :", ul1.shape)
+
+        last = self.last(ul1)
+        self.debugPrint("LAST :", last.shape)
+
+        return torch.squeeze(last,1)

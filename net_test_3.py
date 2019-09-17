@@ -16,13 +16,41 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import cv2
-from net_repo import EpiDatasetCrop, EpiveyorNet, EpiRubikNet
+from net_repo import EpiDatasetCrop, UEpiNet
 from torchsummary import summary
 import time
+from epidataset import EpiDataset
 
 checkpoint_path = 'media/Checkpoints'
 
-net = EpiRubikNet(16, 1)
+net = UEpiNet(16, 1)
+
+
+# input = torch.rand(1,3,11,200,200)
+# print(input.shape)
+#
+# output = net(input)
+
+
+
+device = ("cuda:0" if torch.cuda.is_available() else "cpu")
+print("DEVICE:", device)
+net = net.to(device)
+
+for param in net.parameters():
+    param.requires_grad = True
+
+lr = 0.001
+optimizer = optim.Adam(net.parameters(), lr=lr)
+
+criterion = nn.L1Loss()
+
+dataset = EpiDataset(folder='/tmp/gino')
+dataset_test = EpiDataset(folder='/tmp/gino')
+
+training_generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
+validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
+
 
 last_model_path = os.path.join(checkpoint_path, "last_model.pb")
 if os.path.exists(last_model_path):
@@ -106,42 +134,43 @@ for epoch in range(50001):
             # print("INPUT", input.shape)
             output = net(input)
 
-            input_unsqueeze = torch.unsqueeze(input[:, 0, ::], 1)
-            # input_unsqueeze = input
-            # img = (input_unsqueeze[0][0].detach().cpu().numpy()*255.).astype(np.uint8)
-            # cv2.imshow("image",img)
-            # cv2.waitKey(0)
-
-            # print("IN" * 10, output.shape, input_unsqueeze.shape)
-            smoothness = net.get_disparity_smoothness(output, input_unsqueeze)
-
-            # print("IN" * 10, smoothness.shape)
-
-            # print("OUTPUT", output.shape)
-
-            # output_background = output * mask
-            # target_background = target * mask
+            # input_unsqueeze = torch.unsqueeze(input[:, 0, ::], 1)
+            # # input_unsqueeze = input
+            # # img = (input_unsqueeze[0][0].detach().cpu().numpy()*255.).astype(np.uint8)
+            # # cv2.imshow("image",img)
+            # # cv2.waitKey(0)
             #
-            # output_foreground = output * (1.0 - mask)
-            # target_foreground = target * (1.0 - mask)
+            # # print("IN" * 10, output.shape, input_unsqueeze.shape)
+            # smoothness = net.get_disparity_smoothness(output, input_unsqueeze)
             #
-            # loss1 = criterion(output_background, target_background)
-            # loss2 = criterion(output_foreground, target_foreground)
-            # loss = loss1 + 1000 * loss2
-
-
-            loss1 = criterion(output, target)
-            loss2 = 0.5 * torch.mean(torch.abs(smoothness))
-            loss3 = criterion(net.getTargetGradient(target), net.getTargetGradient(output))
-            loss = loss1 + loss2 + loss3
+            # # print("IN" * 10, smoothness.shape)
+            #
+            # # print("OUTPUT", output.shape)
+            #
+            # # output_background = output * mask
+            # # target_background = target * mask
+            # #
+            # # output_foreground = output * (1.0 - mask)
+            # # target_foreground = target * (1.0 - mask)
+            # #
+            # # loss1 = criterion(output_background, target_background)
+            # # loss2 = criterion(output_foreground, target_foreground)
+            # # loss = loss1 + 1000 * loss2
+            #
+            #
+            # loss1 = criterion(output, target)
+            # loss2 = 0.5 * torch.mean(torch.abs(smoothness))
+            # loss3 = criterion(net.getTargetGradient(target), net.getTargetGradient(output))
+            # loss = loss1 + loss2 + loss3
             # print("loss:",loss1,loss2,loss)
+            loss = criterion(output, target)
 
             loss.backward()
             optimizer.step()
 
-            cumulative_loss['loss1'] += loss1.detach().cpu().numpy()
-            cumulative_loss['loss2'] += loss2.detach().cpu().numpy()
-            cumulative_loss['loss3'] += loss3.detach().cpu().numpy()
+            # cumulative_loss['loss1'] += loss1.detach().cpu().numpy()
+            # cumulative_loss['loss2'] += loss2.detach().cpu().numpy()
+            # cumulative_loss['loss3'] += loss3.detach().cpu().numpy()
             cumulative_loss['loss'] += loss.detach().cpu().numpy()
             counter += 1.0
             # print("Batch: {}/{}".format(index, len(training_generator)))
@@ -149,11 +178,11 @@ for epoch in range(50001):
 
 
 
-    print("Loss Depth", cumulative_loss['loss1'] / counter)
-    print("Loss Smooth", cumulative_loss['loss2'] / counter)
-    print("Loss Grad", cumulative_loss['loss3'] / counter)
+    # print("Loss Depth", cumulative_loss['loss1'] / counter)
+    # print("Loss Smooth", cumulative_loss['loss2'] / counter)
+    # print("Loss Grad", cumulative_loss['loss3'] / counter)
     print("Loss", cumulative_loss['loss'] / counter)
-    time.sleep(0.01)
+    # time.sleep(0.01)
 
     #
 
