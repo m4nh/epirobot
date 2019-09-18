@@ -190,7 +190,7 @@ def createOutputNode(output_path='/tmp/gino', name='OutFile', format='OPEN_EXR')
 
 
 output_path = '/tmp/vc_dataset_train/frame_{}/'
-for j in range(20):
+for j in range(5):
     
     # RANDOMIZE TABLE
     randomizeTable()
