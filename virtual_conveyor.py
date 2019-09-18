@@ -248,8 +248,8 @@ for j in range(1):
     for i in range(11):
         print("#"*20)
         prefs = bpy.context.preferences.system
-        for d in prefs:
-            print(d.name)
+        print(bpy.context.preferences.system.compute_device_type)
+        print(bpy.context.preferences.system.compute_device)
 
         camera.location.x += 0.002
         #rotateObject(camera, 'Y', -0.25)
