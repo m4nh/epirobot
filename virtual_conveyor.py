@@ -152,6 +152,8 @@ bpy.data.scenes["Scene"].cycles.min_bounces = 1
 bpy.data.scenes["Scene"].render.tile_x = 512
 bpy.data.scenes["Scene"].render.tile_y = 512
 bpy.data.scenes["Scene"].cycles.device = 'GPU'
+bpy.context.user_preferences.system.compute_device_type = 'CUDA'
+bpy.context.user_preferences.system.compute_device = 'CUDA_0'
 
 clearUnusedImages()
 
