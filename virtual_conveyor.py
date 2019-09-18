@@ -109,9 +109,9 @@ def randomizeLight():
 def randomizeObjectPose(obj):
 
     bounds = np.array([
-        [-0.1,0.1],
-        [-0.1,0.1],
-        [0.02,0.1]
+        [-0.2,0.2],
+        [-0.15,0.15],
+        [0.02,0.15]
     ])
     
     r0 = random.uniform(-90,90)
@@ -190,7 +190,7 @@ def createOutputNode(output_path='/tmp/gino', name='OutFile', format='OPEN_EXR')
 
 
 output_path = '/tmp/vc_dataset_train/frame_{}/'
-for j in range(5):
+for j in range(1):
     
     # RANDOMIZE TABLE
     randomizeTable()
@@ -200,7 +200,7 @@ for j in range(5):
 
     # RANDOMIZE OBJECTS
     deletePieces()
-    for i in range(10):
+    for i in range(20):
         model = loadPly(
             random.choice(models_files),
             rescale_factor = 0.0007
@@ -236,7 +236,7 @@ for j in range(5):
 
 
     camera = bpy.data.objects["Camera"]
-    for i in range(32):
+    for i in range(11):
         
         camera.location.x += 0.002
         #rotateObject(camera, 'Y', -0.25)
