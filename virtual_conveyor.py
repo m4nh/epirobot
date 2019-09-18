@@ -152,8 +152,6 @@ bpy.data.scenes["Scene"].cycles.min_bounces = 1
 bpy.data.scenes["Scene"].render.tile_x = 512
 bpy.data.scenes["Scene"].render.tile_y = 512
 bpy.data.scenes["Scene"].cycles.device = 'GPU'
-bpy.context.preferences.system.compute_device_type = 'CUDA'
-bpy.context.preferences.system.compute_device = 'CUDA_0'
 
 clearUnusedImages()
 
@@ -249,7 +247,11 @@ for j in range(1):
     camera = bpy.data.objects["Camera"]
     for i in range(11):
         print("#"*20)
-        print(bpy.context.scene.cycles.device)
+        prefs = bpy.context.user_preferences.addons['cycles'].preferences
+        print(prefs.compute_device_type)
+
+        for d in prefs.devices:
+            print(d.name)
         camera.location.x += 0.002
         #rotateObject(camera, 'Y', -0.25)
             
