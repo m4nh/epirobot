@@ -246,7 +246,8 @@ for j in range(1):
 
     camera = bpy.data.objects["Camera"]
     for i in range(11):
-        
+        print("#"*20)
+        print(bpy.context.scene.cycles.device)
         camera.location.x += 0.002
         #rotateObject(camera, 'Y', -0.25)
             
