@@ -143,8 +143,15 @@ def clearUnusedImages():
         bpy.data.images.remove(image)  
 
 
-bpy.context.scene.cycles.device = 'GPU'
-
+# bpy.context.scene.cycles.device = 'GPU'
+bpy.data.scenes["Scene"].render.resolution_x = 640
+bpy.data.scenes["Scene"].render.resolution_y = 480
+bpy.data.scenes["Scene"].cycles.samples = 200
+bpy.data.scenes["Scene"].cycles.max_bounces= 1
+bpy.data.scenes["Scene"].cycles.min_bounces = 1
+bpy.data.scenes["Scene"].render.tile_x = 512
+bpy.data.scenes["Scene"].render.tile_y = 512
+bpy.data.scenes["Scene"].cycles.device = 'GPU'
 
 clearUnusedImages()
 
