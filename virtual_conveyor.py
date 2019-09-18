@@ -143,6 +143,8 @@ def clearUnusedImages():
         bpy.data.images.remove(image)  
 
 
+bpy.context.scene.cycles.device = 'GPU'
+
 
 clearUnusedImages()
 
