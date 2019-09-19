@@ -248,8 +248,6 @@ for j in range(1):
     for i in range(11):
         print("#"*20)
 
-        print(bpy.context.preferences.addon['cycles'].preferences.compute_device_type)
-        print(bpy.context.preferences.addon['cycles'].preferences.compute_device_type)
 
         camera.location.x += 0.002
         #rotateObject(camera, 'Y', -0.25)
