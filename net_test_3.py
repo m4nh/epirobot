@@ -177,9 +177,9 @@ for epoch in range(50001):
 
     #
 
-    if epoch % 5 == 0 and epoch > 0:
+    if True:#epoch % 5 == 0 and epoch > 0:
         stack = None
-        max_stack = 10
+        max_stack = 8
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(validation_generator):
@@ -195,8 +195,8 @@ for epoch in range(50001):
             print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
             print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
-            map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
-            map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 0), cv2.COLORMAP_JET)
+            map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 5), cv2.COLORMAP_JET)
+            map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0], 5), cv2.COLORMAP_JET)
             # map_gt = (target[0][0] * 255).astype(np.uint8)
             # map_pred = (output[0][0] * 255).astype(np.uint8)
 
