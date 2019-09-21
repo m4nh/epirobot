@@ -21,6 +21,7 @@ from torchsummary import summary
 import time
 from epidataset import EpiDataset
 import sys
+import torchsummary
 
 learning_rate = float(sys.argv[1]) if len(sys.argv) > 1 else 0.001
 print("LEARNING RATE ", learning_rate)
@@ -33,6 +34,8 @@ net = UEpiNet(16, 1)
 #
 # output = net(input)
 
+
+# torchsummary.summary(net, input_size=(3,11,128,128))
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)

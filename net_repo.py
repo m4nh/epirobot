@@ -775,23 +775,23 @@ class UEpiNet(nn.Module):  # vgg version
 
         self.output_nc = output_nc
 
-        self.layer_1 = self.convblock3D(11, 3, 16, 3)
-        self.layer_1_D = self.downconv3D(16, 32, 2)
-        self.layer_2 = self.convblock3D(11, 32, 32, 3)
-        self.layer_2_D = self.downconv3D(32, 64, 2)
-        self.layer_3 = self.convblock3D(11, 64, 64, 3)
-        self.layer_3_D = self.downconv3D(64, 64, 2)
-        self.layer_4 = self.convblock3D(11, 64, 64, 3)
+        self.layer_1 = self.convblock3D(11, 3, 64, 3)
+        self.layer_1_D = self.downconv3D(64, 128, 2)
+        self.layer_2 = self.convblock3D(11, 128, 128, 3)
+        self.layer_2_D = self.downconv3D(128, 256, 2)
+        self.layer_3 = self.convblock3D(11, 256, 256, 3)
+        self.layer_3_D = self.downconv3D(256, 256, 2)
+        self.layer_4 = self.convblock3D(11, 256, 256, 3)
 
-        self.layer_4_U = self.upconv3D(64, 64, 2)
+        self.layer_4_U = self.upconv3D(256, 256, 2)
 
-        self.uplayer_3 = self.convblock3D(11, 64 + 64, 64, 3)
-        self.uplayer_3_U = self.upconv3D(64, 32, 2)
-        self.uplayer_2 = self.convblock3D(11, 64, 32, 3)
-        self.uplayer_2_U = self.upconv3D(32, 16, 2)
-        self.uplayer_1 = self.convblock3D(11, 32, 16, 3)
+        self.uplayer_3 = self.convblock3D(11, 256 + 256, 256, 3)
+        self.uplayer_3_U = self.upconv3D(256, 128, 2)
+        self.uplayer_2 = self.convblock3D(11, 256, 128, 3)
+        self.uplayer_2_U = self.upconv3D(128, 64, 2)
+        self.uplayer_1 = self.convblock3D(11, 128, 64, 3)
 
-        self.last = self.endblock(11, 16, 11, 3)
+        self.last = self.endblock(11, 64, 11, 3)
         # self.uplayer_4 = self.convblock3D(11, 64, 64, 3, 2)
 
         # self.layer_5 = self.convblock3D(11, 64)
