@@ -780,10 +780,10 @@ class UEpiNet(nn.Module):  # vgg version
         self.layer_2 = self.convblock3D(11, 32, 32, 3)
         self.layer_2_D = self.downconv3D(32, 64, 2)
         self.layer_3 = self.convblock3D(11, 64, 64, 3)
-        self.layer_3_D = self.downconv3D(64, 128, 2)
-        self.layer_4 = self.convblock3D(11, 128, 128, 3)
+        self.layer_3_D = self.downconv3D(64, 64, 2)
+        self.layer_4 = self.convblock3D(11, 64, 64, 3)
 
-        self.layer_4_U = self.upconv3D(128, 64, 2)
+        self.layer_4_U = self.upconv3D(64, 64, 2)
 
         self.uplayer_3 = self.convblock3D(11, 64 + 64, 64, 3)
         self.uplayer_3_U = self.upconv3D(64, 32, 2)
