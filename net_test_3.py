@@ -50,7 +50,7 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 criterion = nn.L1Loss()
 
 dataset = EpiDataset(folder='/tmp/train')
-dataset_test = EpiDataset(folder='/tmp/test')
+dataset_test = EpiDataset(folder='/tmp/train')
 
 training_generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
