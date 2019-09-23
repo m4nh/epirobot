@@ -15,6 +15,7 @@ import types
 import random
 import time
 
+
 class Lambda(object):
     """Apply a user-defined lambda as a transform.
 
@@ -189,7 +190,7 @@ class EpiDataset(Dataset):
             'depth': dstack
         }
         t1 = time.time()
-        print("LOADINF TIE:", t1-t0)
+        print("LOADINF TIE:", t1 - t0)
         return sample
 
 
@@ -343,9 +344,11 @@ class EpiDisparityDataset(Dataset):
 
         return sample
 
+
 class EpiSingleDisparityDataset(Dataset):
 
-    def __init__(self, folder, max_depth=11,disparity_index=5, crop_size=-1, augmentation=True, max_disparity=128, baseline=0.011,
+    def __init__(self, folder, max_depth=11, disparity_index=5, crop_size=-1, augmentation=True, max_disparity=128,
+                 baseline=0.011,
                  focal=500):
 
         self.folder = folder
@@ -450,6 +453,8 @@ class EpiSingleDisparityDataset(Dataset):
 
     def __getitem__(self, idx):
         # print(self.subfolders[idx])
+        t0 = time.time()
+
         if self.augmentation:
             trans = self.getImageTransformPipeline()
         else:
@@ -486,5 +491,8 @@ class EpiSingleDisparityDataset(Dataset):
             'rgb': stack,
             'depth': dstack
         }
+
+        t1 = time.time()
+        print("Time:", t1 - t0)
 
         return sample
