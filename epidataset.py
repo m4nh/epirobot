@@ -459,7 +459,11 @@ class EpiSingleDisparityDataset(Dataset):
         else:
             trans = self.getImageTransformPipeline(-1, -1, -1, -1)
 
+        print("Time Trans:", time.time() - t0)
+        t0 = time.time()
+
         # LOAD RBG IMAGES
+
         images = self.loadImagesStack(self.subfolders[idx])
         stack = []
         for im in images:
@@ -469,12 +473,18 @@ class EpiSingleDisparityDataset(Dataset):
         # stack = self.transform(stack)
         stack = torch.cat(stack, 1)
 
+        print("Time RGB:", time.time() - t0)
+        t0 = time.time()
+
         # LOAD DEPTHS
         depths = self.loadDepthsStack(self.subfolders[idx])
         dstack = []
         for d in depths:
             dstack.append(torch.unsqueeze(d, 0))
         dstack = torch.cat(dstack)
+
+        print("Time Depth:", time.time() - t0)
+        t0 = time.time()
 
         if self.crop_size > 0:
             h = stack.shape[2]
@@ -486,12 +496,14 @@ class EpiSingleDisparityDataset(Dataset):
             stack = stack[:, :, ri:ri + self.crop_size, rj:rj + self.crop_size]
             dstack = dstack[:, ri:ri + self.crop_size, rj:rj + self.crop_size]
 
+        print("Time Crop:", time.time() - t0)
+        t0 = time.time()
+
         sample = {
             'rgb': stack,
             'depth': dstack
         }
 
-        t1 = time.time()
-        print("Time:", t1 - t0)
+
 
         return sample
