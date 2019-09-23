@@ -260,9 +260,8 @@ class EpiFeatures(nn.Module):
         self.conv_7x7 = conv(num_in_layers, num_out_layers, 7, 1)
         self.conv_5x5 = conv(num_in_layers, num_out_layers, 5, 1)
         self.conv_3x3 = conv(num_in_layers, num_out_layers, 3, 1)
-        self.conv_2x2 = conv(num_in_layers, num_out_layers, 2, 1)
 
-        self.out_size = num_out_layers * 4 * depth
+        self.out_size = num_out_layers * 3 * depth
         # self.features = self.build(num_in_layers, num_out_layers, kernel_size, num_blocks)
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -277,8 +276,7 @@ class EpiFeatures(nn.Module):
             f7 = self.conv_7x7(slice)
             f5 = self.conv_5x5(slice)
             f3 = self.conv_3x3(slice)
-            f2 = self.conv_2x2(slice)
-            f = torch.cat((f7, f5, f3, f2), 1)
+            f = torch.cat((f7, f5, f3), 1)
             # print(slice.shape, f.shape)
 
             outs += [f]
