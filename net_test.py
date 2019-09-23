@@ -114,7 +114,7 @@ for epoch in range(50001):
 
             print("INPUT ", input.shape)
             rgb = input[0, :, 5, :, :]
-            rgb = rgb.permute(1, 2, 0)
+            rgb = rgb.permute(1, 2, 0).detach().cpu().numpy()
             map = np.vstack((rgb, map_gt, map_pred))
 
             if stack is None:
