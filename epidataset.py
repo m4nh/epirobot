@@ -194,12 +194,14 @@ class EpiDataset(Dataset):
 
 class EpiDisparityDataset(Dataset):
 
-    def __init__(self, folder, max_depth=11, crop_size=-1, max_disparity=128, baseline=0.011, focal=500):
+    def __init__(self, folder, max_depth=11, crop_size=-1, augmentation=True, max_disparity=128, baseline=0.011,
+                 focal=500):
 
         self.folder = folder
         self.baseline = baseline
         self.focal = focal
         self.max_disparity = max_disparity
+        self.augmentation = augmentation
         self.subfolders = sorted(glob.glob(os.path.join(self.folder, "*")))
         self.crop_size = crop_size
         self.max_depth = max_depth
@@ -300,7 +302,10 @@ class EpiDisparityDataset(Dataset):
 
     def __getitem__(self, idx):
         # print(self.subfolders[idx])
-        trans = self.getImageTransformPipeline()
+        if self.augmentation:
+            trans = self.getImageTransformPipeline()
+        else:
+            trans = self.getImageTransformPipeline(-1, -1, -1, -1)
 
         # LOAD RBG IMAGES
         images = self.loadImagesStack(self.subfolders[idx])

@@ -38,7 +38,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # DATASET
 dataset = EpiDisparityDataset(folder='/tmp/test', crop_size=256)
-dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=256)
+dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=256, augmentation=False)
 
 training_generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
@@ -113,7 +113,9 @@ for epoch in range(50001):
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0]), cv2.COLORMAP_JET)
 
             print("INPUT ", input.shape)
-            map = np.vstack((input[:, 5, :, :], map_gt, map_pred))
+            rgb = input[0, :, 5, :, :]
+            rgb = rgb.permute(1, 2, 0)
+            map = np.vstack((rgb, map_gt, map_pred))
 
             if stack is None:
                 stack = map
