@@ -259,6 +259,7 @@ class EpiDisparityDataset(Dataset):
                 img = cv2.imread(image, 2)
                 img = torch.Tensor(self.baseline * self.focal / np.float32(img))
                 img = (img / self.max_disparity)
+                img = torch.clamp(img, 0.0, 1.0)
                 # img = img.permute(2, 0, 1)
                 if index >= self.max_depth:
                     break

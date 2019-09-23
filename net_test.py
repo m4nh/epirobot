@@ -37,8 +37,8 @@ lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # DATASET
-dataset = EpiDisparityDataset(folder='/tmp/train', crop_size=256)
-dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=256, augmentation=False)
+dataset = EpiDisparityDataset(folder='/tmp/train', crop_size=256, focal=2000, max_disparity=255)
+dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=256, augmentation=False, focal=2000, max_disparity=255)
 
 training_generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
@@ -92,7 +92,7 @@ for epoch in range(50001):
 
     if True:  # epoch % 5 == 0 and epoch > 0:
         stack = None
-        max_stack = 8
+        max_stack = 10
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(validation_generator):
