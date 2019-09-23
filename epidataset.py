@@ -404,9 +404,8 @@ class EpiSingleDisparityDataset(Dataset):
         return self.image_caches[folder]
 
     def loadDepthsStack(self, folder):
-        images = sorted(glob.glob(os.path.join(folder, "*.exr")))
-
         if folder not in self.depth_caches:
+            images = sorted(glob.glob(os.path.join(folder, "*.exr")))
             self.depth_caches[folder] = []
             image = images[self.disparity_index]
             img = cv2.imread(image, 2)
@@ -453,7 +452,7 @@ class EpiSingleDisparityDataset(Dataset):
 
     def __getitem__(self, idx):
         # print(self.subfolders[idx])
-        t0 = time.time()
+        # t0 = time.time()
 
         if self.augmentation:
             trans = self.getImageTransformPipeline()
@@ -492,7 +491,7 @@ class EpiSingleDisparityDataset(Dataset):
             'depth': dstack
         }
 
-        t1 = time.time()
-        print("Time:", t1 - t0)
+        # t1 = time.time()
+        # print("Time:", t1 - t0)
 
         return sample

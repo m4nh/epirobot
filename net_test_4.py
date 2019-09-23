@@ -97,7 +97,7 @@ for epoch in range(50001):
     print("Loss", loss_ / counter)
 
     if True:  # epoch % 5 == 0 and epoch > 0:
-        for crop_size in [32, 128, -1]:
+        for crop_size in [32, 256]:
             stack = None
             max_stack = 5
             print("∞" * 20)
