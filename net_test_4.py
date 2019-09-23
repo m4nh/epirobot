@@ -46,7 +46,7 @@ validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_
 # LOAD MODEL IF ANY
 model.loadModel()
 
-device = "cpu"  # ("cuda:0" if torch.cuda.is_available() else "cpu")
+device =("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
 
