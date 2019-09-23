@@ -347,7 +347,7 @@ class EpinetSimple(BaseNetwork):  # vgg version
         super(EpinetSimple, self).__init__(name, checkpoints_path)
 
         self.features_layer = EpiFeatures(depth, input_nc, 16)#conv3D(11, 3, 256, 3, 1)  #
-        self.l1 = resblock(256, 128, 5, 1)
+        self.l1 = resblock(self.features_layer.out_size, 128, 10, 1)
         self.out = get_disp(128 * 4, output_nc)
         self.criterion = torch.nn.L1Loss()
 
