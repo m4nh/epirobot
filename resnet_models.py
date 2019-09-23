@@ -22,6 +22,22 @@ class conv(nn.Module):
         return F.elu(x, inplace=True)
 
 
+class conv3D(nn.Module):
+    def __init__(self, num_in_depth, num_in_layers, num_out_layers, kernel_size, stride):
+        super(conv3D, self).__init__()
+        self.kernel_size = kernel_size
+        self.conv_base = nn.Conv3d(num_in_layers, num_out_layers, kernel_size=(num_in_depth,kernel_size, kernel_size),
+                                   stride=stride)
+        self.normalize = nn.BatchNorm3d(num_out_layers)
+
+    def forward(self, x):
+        p = int(np.floor((self.kernel_size - 1) / 2))
+        p2d = (p, p, p, p)
+        x = self.conv_base(F.pad(x, p2d))
+        x = self.normalize(x)
+        return F.elu(x, inplace=True)
+
+
 class convblock(nn.Module):
     def __init__(self, num_in_layers, num_out_layers, kernel_size):
         super(convblock, self).__init__()
@@ -335,8 +351,8 @@ class EpinetSimple(BaseNetwork):  # vgg version
     def __init__(self, depth, input_nc, output_nc, name, checkpoints_path):
         super(EpinetSimple, self).__init__(name, checkpoints_path)
 
-        self.features_layer = EpiFeatures(depth, input_nc, 16)
-        self.l1 = resblock(self.features_layer.out_size, 128, 3, 1)
+        self.features_layer = conv3D(11, 3, 256, 3, 1)  # EpiFeatures(depth, input_nc, 16)
+        self.l1 = resblock(256, 128, 10, 1)
         self.out = get_disp(128 * 4, output_nc)
         self.criterion = torch.nn.L1Loss()
         self.pushToDevice()
@@ -350,6 +366,8 @@ class EpinetSimple(BaseNetwork):  # vgg version
         debug = True
 
         l0 = self.features_layer(x)
+        l0 = torch.squeeze(l0, 2)
+        print("L0", l0.shape)
         l1 = self.l1(l0)
         o = self.out(l1)
         return o
