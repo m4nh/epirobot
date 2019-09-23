@@ -452,7 +452,7 @@ class EpiSingleDisparityDataset(Dataset):
 
     def __getitem__(self, idx):
         # print(self.subfolders[idx])
-        # t0 = time.time()
+        t0 = time.time()
 
         if self.augmentation:
             trans = self.getImageTransformPipeline()
@@ -491,7 +491,7 @@ class EpiSingleDisparityDataset(Dataset):
             'depth': dstack
         }
 
-        # t1 = time.time()
-        # print("Time:", t1 - t0)
+        t1 = time.time()
+        print("Time:", t1 - t0)
 
         return sample
