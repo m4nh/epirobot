@@ -48,7 +48,7 @@ validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_
 # LOAD MODEL IF ANY
 model.loadModel()
 
-device = ("cuda:0" if torch.cuda.is_available() else "cpu")
+device = "cpu"# ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
 
@@ -79,9 +79,9 @@ for epoch in range(50001):
         input = batch['rgb']
         target = batch['depth']
 
-        input = input.to(model.device)
-        target = target.to(model.device)
-        print("TARGET TO", model.device)
+        input = input.to(device)
+        target = target.to(device)
+        print("TARGET TO", device)
         with torch.set_grad_enabled(True):
             output = model(input)
 

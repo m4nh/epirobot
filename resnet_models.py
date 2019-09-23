@@ -309,7 +309,6 @@ class BaseNetwork(nn.Module):
         super(BaseNetwork, self).__init__()
         self.name = name
         self.checkpoints_path = checkpoints_path
-        self.device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
     def loadModel(self, tag='LAST'):
