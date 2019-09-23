@@ -109,7 +109,7 @@ for epoch in range(50001):
                 input = batch['rgb']
                 target = batch['depth'].detach()
 
-                input = input.to(model.device)
+                input = input.to(device)
 
                 output = model(input)
                 output = output.detach()
