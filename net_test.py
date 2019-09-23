@@ -37,7 +37,7 @@ lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # DATASET
-dataset = EpiDisparityDataset(folder='/tmp/train', crop_size=256)
+dataset = EpiDisparityDataset(folder='/tmp/test', crop_size=256)
 dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=256)
 
 training_generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
