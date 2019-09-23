@@ -455,7 +455,7 @@ class EpiSingleDisparityDataset(Dataset):
         t0 = time.time()
 
         if self.augmentation:
-            trans = self.getImageTransformPipeline()
+            trans = self.getImageTransformPipeline(-1,-1,-1,-1)
         else:
             trans = self.getImageTransformPipeline(-1, -1, -1, -1)
 
