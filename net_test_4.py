@@ -38,9 +38,10 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # DATASET
 dataset = EpiSingleDisparityDataset(folder='/tmp/train', crop_size=32, focal=2000, max_disparity=255)
-dataset_test = EpiSingleDisparityDataset(folder='/tmp/test', crop_size=32, augmentation=False, focal=2000, max_disparity=255)
+dataset_test = EpiSingleDisparityDataset(folder='/tmp/test', crop_size=32, augmentation=False, focal=2000,
+                                         max_disparity=255)
 
-training_generator = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=0, drop_last=False)
+training_generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
@@ -79,7 +80,6 @@ for epoch in range(50001):
 
         input = input.to(device)
         target = target.to(device)
-        print("TARGET TO", device)
         with torch.set_grad_enabled(True):
             output = model(input)
 
@@ -95,6 +95,9 @@ for epoch in range(50001):
             print("Batch: {}/{}".format(index, len(training_generator)))
 
     print("Loss", loss_ / counter)
+
+    with open("/tmp/loss.txt", "a") as myfile:
+        myfile.write("{}\n".format(loss_ / counter))
 
     if True:  # epoch % 5 == 0 and epoch > 0:
         for crop_size in [32, 256]:
