@@ -27,9 +27,7 @@ print("LEARNING RATE ", learning_rate)
 checkpoint_path = 'media/Checkpoints'
 
 # MODEL
-model = EpinetSimple(11, 3,1, "epi_simple_0", "media/Checkpoints/")
-
-
+model = EpinetSimple(11, 3, 1, "epi_simple_0", "media/Checkpoints/")
 
 for param in model.parameters():
     param.requires_grad = True
@@ -48,11 +46,11 @@ validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_
 # LOAD MODEL IF ANY
 model.loadModel()
 
-device = "cpu"# ("cuda:0" if torch.cuda.is_available() else "cpu")
+device = "cpu"  # ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
 
-torchsummary.summary(model, (3, 11, 32, 32))
+torchsummary.summary(model, (3, 11, 32, 32), device=device)
 
 criterion = nn.L1Loss()
 
