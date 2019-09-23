@@ -260,20 +260,13 @@ class EpiFeatures(nn.Module):
         self.conv_7x7 = conv(num_in_layers, num_out_layers, 7, 1)
         self.conv_5x5 = conv(num_in_layers, num_out_layers, 5, 1)
         self.conv_3x3 = conv(num_in_layers, num_out_layers, 3, 1)
-        self.conv_2x2 = conv(num_in_layers, num_out_layers, 3, 1)
+        self.conv_2x2 = conv(num_in_layers, num_out_layers, 2, 1)
 
         self.out_size = num_out_layers * 4 * depth
         # self.features = self.build(num_in_layers, num_out_layers, kernel_size, num_blocks)
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.xavier_uniform_(m.weight)
-
-    def build(self, num_in_layers, num_out_layers, kernel_size, num_blocks):
-        layers = []
-        layers.append(conv(num_in_layers, num_out_layers, kernel_size, 1))
-        for i in range(1, num_blocks - 1):
-            layers.append(conv(num_out_layers, num_out_layers, kernel_size, 1))
-        return nn.Sequential(*layers)
 
     def forward(self, x):
         # print(x.shape)
@@ -345,7 +338,7 @@ class EpinetSimple(BaseNetwork):  # vgg version
         super(EpinetSimple, self).__init__(name, checkpoints_path)
 
         self.features_layer = EpiFeatures(depth, input_nc, 16)
-        self.l1 = resblock(self.features_layer.out_size, 128, 5, 1)
+        self.l1 = resblock(self.features_layer.out_size, 128, 3, 1)
         self.out = get_disp(128 * 4, output_nc)
         self.criterion = torch.nn.L1Loss()
         self.pushToDevice()

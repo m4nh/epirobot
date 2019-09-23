@@ -132,3 +132,4 @@ for epoch in range(50001):
 
             # print("SHAPE", map_pred.shape)
             cv2.imwrite("/tmp/predictions_{}.png".format(crop_size), stack)
+            torch.cuda.empty_cache()
