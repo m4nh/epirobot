@@ -112,6 +112,7 @@ for epoch in range(50001):
             map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 5), cv2.COLORMAP_JET)
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0]), cv2.COLORMAP_JET)
 
+            print("INPUT ", input.shape)
             map = np.vstack((input[:, 5, :, :], map_gt, map_pred))
 
             if stack is None:
