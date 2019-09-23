@@ -30,7 +30,6 @@ checkpoint_path = 'media/Checkpoints'
 model = EpinetSimple(11, 3,1, "epi_simple_0", "media/Checkpoints/")
 
 
-torchsummary.summary(model, (3, 11, 32, 32))
 
 for param in model.parameters():
     param.requires_grad = True
@@ -52,6 +51,7 @@ model.loadModel()
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
+torchsummary.summary(model, (3, 11, 32, 32))
 
 criterion = nn.L1Loss()
 
