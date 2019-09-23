@@ -465,16 +465,21 @@ class EpiSingleDisparityDataset(Dataset):
         # LOAD RBG IMAGES
 
         images = self.loadImagesStack(self.subfolders[idx])
+        print("Time RGBLoad:", time.time() - t0)
+        t0 = time.time()
+
         stack = []
         for im in images:
             imout = trans(im)
             stack.append(torch.unsqueeze(imout, 1))
 
+        print("Time RGB Append:", time.time() - t0)
+        t0 = time.time()
         # stack = self.transform(stack)
         stack = torch.cat(stack, 1)
-
-        print("Time RGB:", time.time() - t0)
+        print("Time RGB Cat:", time.time() - t0)
         t0 = time.time()
+
 
         # LOAD DEPTHS
         depths = self.loadDepthsStack(self.subfolders[idx])
