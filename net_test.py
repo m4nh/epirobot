@@ -113,8 +113,7 @@ for epoch in range(50001):
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0]), cv2.COLORMAP_JET)
 
             print("INPUT ", input.shape)
-            rgb = input[0, :, 5, :, :]
-            rgb = rgb.permute(1, 2, 0).detach().cpu().numpy()
+            rgb = dataset.displayableImage(input, 5)
             map = np.vstack((rgb, map_gt, map_pred))
 
             if stack is None:
