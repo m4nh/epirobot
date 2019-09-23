@@ -49,6 +49,9 @@ validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_
 # LOAD MODEL IF ANY
 model.loadModel()
 
+model.to(model.device)
+print("MODEL TO->",model.device)
+
 criterion = nn.L1Loss()
 
 for epoch in range(50001):
