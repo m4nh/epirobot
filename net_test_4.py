@@ -79,7 +79,7 @@ for epoch in range(50001):
 
         input = input.to(model.device)
         target = target.to(model.device)
-
+        print("TARGET TO", model.device)
         with torch.set_grad_enabled(True):
             output = model(input)
 
