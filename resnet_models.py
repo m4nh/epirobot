@@ -367,7 +367,6 @@ class EpinetSimple(BaseNetwork):  # vgg version
 
         l0 = self.features_layer(x)
         l0 = torch.squeeze(l0, 2)
-        print("L0", l0.shape)
         l1 = self.l1(l0)
         o = self.out(l1)
         return o
