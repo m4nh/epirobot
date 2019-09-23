@@ -470,8 +470,8 @@ class EpiSingleDisparityDataset(Dataset):
 
         stack = []
         for im in images:
-            imout = trans(im)
-            stack.append(torch.unsqueeze(imout, 1))
+            # imout = im +  torch.rand_like(im)*0.1
+            stack.append(torch.unsqueeze(im, 1))
 
         print("Time RGB Append:", time.time() - t0)
         t0 = time.time()
