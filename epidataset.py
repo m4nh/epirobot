@@ -13,7 +13,7 @@ from skimage import io, transform
 import cv2
 import types
 import random
-
+import time
 
 class Lambda(object):
     """Apply a user-defined lambda as a transform.
@@ -149,7 +149,7 @@ class EpiDataset(Dataset):
         return trans
 
     def __getitem__(self, idx):
-
+        t0 = time.time()
         trans = self.getImageTransformPipeline()
 
         # LOAD RBG IMAGES
@@ -188,7 +188,8 @@ class EpiDataset(Dataset):
             'rgb': stack,
             'depth': dstack
         }
-
+        t1 = time.time()
+        print("LOADINF TIE:", t1-t0)
         return sample
 
 
