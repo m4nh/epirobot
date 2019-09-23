@@ -9,6 +9,8 @@ from torchvision import transforms, utils
 import cv2
 import glob
 import os
+from resnet_models import *
+
 
 
 class EpiveyorNet(nn.Module):  # vgg version
@@ -839,12 +841,11 @@ class UEpiNet(nn.Module):  # vgg version
     def endblock(self, depth_dim, in_dim, out_dim, kernel=3):
         block = []
 
-        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(depth_dim, kernel, kernel), stride=1, padding=(0,1,1))]
+        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(depth_dim, kernel, kernel), stride=1, padding=(0, 1, 1))]
         # block += [nn.BatchNorm3d(out_dim)]
         # block += [nn.LeakyReLU()]
 
         return nn.Sequential(*block)
-
 
     def upsample_(self, disp, ratio):
         s = disp.size()

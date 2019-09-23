@@ -303,6 +303,10 @@ class BaseNetwork(nn.Module):
         self.name = name
         self.checkpoints_path = checkpoints_path
 
+        self.device = ("cuda:0" if torch.cuda.is_available() else "cpu")
+        print("DEVICE:", self.device)
+        self.to(self.device)
+
     def loadModel(self, tag='LAST'):
         last_model_path = os.path.join(self.checkpoints_path, "{}_{}.pb".format(self.name, tag))
         if os.path.exists(last_model_path):
@@ -325,10 +329,6 @@ class EpiNet(BaseNetwork):
         self.resnet = ResnetModel(self.epifeatures.out_size, num_out_layers)
         self.criterion = torch.nn.L1Loss()
 
-        self.device = ("cuda:0" if torch.cuda.is_available() else "cpu")
-        print("DEVICE:", self.device)
-        self.to(self.device)
-
     def buildLoss(self, output, target):
         loss = self.criterion(output, target)
         return loss
@@ -336,3 +336,26 @@ class EpiNet(BaseNetwork):
     def forward(self, x):
         f = self.epifeatures(x)
         return self.resnet(f)
+
+
+class EpinetSimple(BaseNetwork):  # vgg version
+    def __init__(self, depth, input_nc, output_nc, name, checkpoints_path):
+        super(EpinetSimple, self).__init__(name, checkpoints_path)
+
+        self.features_layer = EpiFeatures(depth, input_nc, 16)
+        self.l1 = resblock(self.features_layer.out_size, 128, 5, 1)
+        self.out = get_disp(128 * 4, output_nc)
+        self.criterion = torch.nn.L1Loss()
+
+    def buildLoss(self, output, target):
+        loss = self.criterion(output, target)
+        return loss
+
+    def forward(self, x):
+        # 3x256x512
+        debug = True
+
+        l0 = self.features_layer(x)
+        l1 = self.l1(l0)
+        o = self.out(l1)
+        return o

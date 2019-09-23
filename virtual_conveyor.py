@@ -86,8 +86,10 @@ def randomizeCameraPosition():
     camera.location = (
         0.0,
         0.0,
-        random.uniform(0.2,0.7)
+        random.uniform(0.2,1.0)
     )
+
+
 
 def randomizeLight():
     light = bpy.data.objects['Point']
@@ -130,9 +132,11 @@ def randomizeObjectPose(obj):
     
 def randomizeTable():
     table = bpy.data.objects['Table']
-    assignRandomTextureToObject(table,table_textures)
-    r2 = random.uniform(-90,90)
-    table.rotation_euler = (0,0,r2) 
+    assignRandomTextureToObject(table, table_textures)
+    r0 = random.uniform(-1, 1)
+    r1 = random.uniform(-1, 1)
+    r2 = random.uniform(-90, 90)
+    table.rotation_euler = (r0,r1,r2)
     
     
 def clearUnusedImages():
@@ -197,7 +201,7 @@ def createOutputNode(output_path='/tmp/gino', name='OutFile', format='OPEN_EXR')
 
 
 output_path = '/tmp/vc_dataset_train/frame_{}/'
-for j in range(500):
+for j in range(1):
     
     # RANDOMIZE TABLE
     randomizeTable()
@@ -207,7 +211,7 @@ for j in range(500):
 
     # RANDOMIZE OBJECTS
     deletePieces()
-    for i in range(20):
+    for i in range(30):
         model = loadPly(
             random.choice(models_files),
             rescale_factor = 0.0007
@@ -243,7 +247,7 @@ for j in range(500):
 
 
     camera = bpy.data.objects["Camera"]
-    for i in range(11):
+    for i in range(1):
         print("#"*20)
 
 

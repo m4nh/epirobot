@@ -16,411 +16,117 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import cv2
+import torchsummary
+from resnet_models import ResnetModel, EpiFeatures, EpiNet, EpinetSimple
+from epidataset import EpiDisparityDataset
 
+import sys
 
-class mono_net(nn.Module):  # vgg version
-    def __init__(self, input_nc, output_nc):
-        super(mono_net, self).__init__()
-
-        self.output_nc = output_nc
-
-        self.layer_1 = self.convblock3D(input_nc, 1, 128, 2)
-        self.layer_2 = self.convblock2D(128, 256, 3,2)
-
-        self.layer_3 = self.convblock2D(256, 128, 3, 1)
-        self.layer_4 = self.convblock2D(256, 64, 3, 1)
-
-        self.layer_5 = self.lastblock(64, 1)
-
-        # self.layer_3 = self.convblock3D(input_nc, 16, 16, 5)
-        # self.layer_3 = self.convblock3D(input_nc, 32, 64, 5)
-        # self.layer_2 = self.convblock(64, 128, 3)
-        # self.layer_3 = self.convblock(128, 256, 3)
-        # # self.layer_4 = self.convblock(128, 256, 3)
-        # # self.layer_5 = self.convblock(256, 256, 3)
-        # self.layer_4 = self.lastblock(256, 1)
-
-    def convblock3D(self, depth_dim, in_dim, out_dim, kernel=3,stride=2):
-        block = []
-
-        block += [nn.Conv3d(in_dim, out_dim, kernel_size=(depth_dim, kernel, kernel), stride=stride,
-                            padding=int((kernel - 1) / 2))]
-        block += [nn.LeakyReLU()]
-        block += [nn.BatchNorm3d(out_dim)]
-
-        return nn.Sequential(*block)
-
-    def convblock2D(self, in_dim, out_dim, kernel=3, stride = 1):
-        block = []
-
-        block += [nn.Conv2d(in_dim, out_dim, kernel_size=(kernel, kernel), stride=stride,
-                            padding=int((kernel - 1) / 2))]
-        block += [nn.LeakyReLU()]
-        block += [nn.BatchNorm2d(out_dim)]
-        block += [nn.Conv2d(out_dim, out_dim, kernel_size=(kernel, kernel), stride=1,
-                            padding=int((kernel - 1) / 2))]
-        block += [nn.LeakyReLU()]
-
-        return nn.Sequential(*block)
-
-    def convblock2D_inv(self, in_dim, out_dim, kernel=3, stride = 1):
-        block = []
-
-        block += [nn.Conv2d(in_dim, out_dim, kernel_size=(kernel, kernel), stride=stride,
-                            padding=int((kernel - 1) / 2))]
-        block += [nn.LeakyReLU()]
-        block += [nn.BatchNorm2d(out_dim)]
-
-        return nn.Sequential(*block)
-
-    def lastblock(self, in_dim, out_dim):
-        block = []
-
-        block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1)]
-        block += [nn.LeakyReLU()]
-        block += [nn.BatchNorm2d(out_dim)]
-        block += [nn.Conv2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1)]
-        block += [nn.Sigmoid()]
-
-        return nn.Sequential(*block)
-
-    def conv_down_block(self, in_dim, out_dim, kernal):
-        conv_down_block = []
-        conv_down_block += [nn.Conv2d(in_dim, out_dim, kernel_size=kernal, stride=1, padding=int((kernal - 1) / 2)),
-                            nn.BatchNorm2d(out_dim), nn.ELU()]  # h,w -> h,w
-        conv_down_block += [nn.Conv2d(out_dim, out_dim, kernel_size=kernal, stride=2, padding=int((kernal - 1) / 2)),
-                            nn.BatchNorm2d(out_dim), nn.ELU()]  # h,w -> h/2,w/2
-
-        return nn.Sequential(*conv_down_block)
-
-    def conv_down_block3D(self, in_dim, out_dim, kernal):
-        conv_down_block = []
-        conv_down_block += [
-            nn.Conv3d(1, out_dim, kernel_size=(in_dim, kernal, kernal), stride=2, padding=int((kernal - 1) / 2)),
-            nn.BatchNorm3d(out_dim), nn.ELU()]  # h,w -> h,w
-
-        return nn.Sequential(*conv_down_block)
-
-    def conv_up_block(self, in_dim, out_dim):
-        conv_up_block = []
-        conv_up_block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1), nn.BatchNorm2d(out_dim),
-                          nn.ELU()]  # h,w -> h,w
-
-        return nn.Sequential(*conv_up_block)
-
-    def conv_block(self, in_dim, out_dim):
-        conv_up_block = []
-        conv_up_block += [nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1), nn.BatchNorm2d(out_dim),
-                          nn.ELU()]  # h,w -> h,w
-
-        return nn.Sequential(*conv_up_block)
-
-    def disp_block(self, in_dim):
-        disp_block = []
-        disp_block += [nn.Conv2d(in_dim, self.output_nc, kernel_size=3, stride=1, padding=1),
-                       nn.Sigmoid()]  # h,w -> h,w
-
-        return nn.Sequential(*disp_block)
-
-    def upsample_(self, disp, ratio):
-        s = disp.size()
-        h = int(s[2])
-        w = int(s[3])
-        nh = h * ratio
-        nw = w * ratio
-        temp = nn.functional.upsample(disp, [nh, nw], mode='nearest')
-
-        return temp
-
-    def scale_pyramid_(self, img, num_scales):
-        # img = torch.mean(img, 1)
-        # img = torch.unsqueeze(img, 1)
-        scaled_imgs = [img]
-        s = img.size()
-        h = int(s[2])
-        w = int(s[3])
-        for i in range(num_scales):
-            ratio = 2 ** (i + 1)
-            nh = h // ratio
-            nw = w // ratio
-            temp = nn.functional.upsample(img, [nh, nw], mode='nearest')
-            scaled_imgs.append(temp)
-        return scaled_imgs
-
-    def gradient_x(self, img):
-        gx = img[:, :, :, :-1] - img[:, :, :, 1:]
-        return gx
-
-    def gradient_y(self, img):
-        gy = img[:, :, :-1, :] - img[:, :, 1:, :]
-        return gy
-
-    def get_disparity_smoothness(self, disp, input_img):
-        disp_gradients_x = [self.gradient_x(d) for d in disp]
-        disp_gradients_y = [self.gradient_y(d) for d in disp]
-
-        image_gradients_x = [self.gradient_x(img) for img in input_img]
-        image_gradients_y = [self.gradient_y(img) for img in input_img]
-
-        weights_x = [torch.exp(-torch.mean(torch.abs(g), 1, keepdim=True)) for g in image_gradients_x]
-        weights_y = [torch.exp(-torch.mean(torch.abs(g), 1, keepdim=True)) for g in image_gradients_y]
-
-        smoothness_x = [disp_gradients_x[i] * weights_x[i] for i in range(4)]
-        smoothness_y = [disp_gradients_y[i] * weights_y[i] for i in range(4)]
-
-        smoothness_x = [torch.nn.functional.pad(k, (0, 1, 0, 0, 0, 0, 0, 0), mode='constant') for k in smoothness_x]
-        smoothness_y = [torch.nn.functional.pad(k, (0, 0, 0, 1, 0, 0, 0, 0), mode='constant') for k in smoothness_y]
-
-        return smoothness_x, smoothness_y
-
-    def forward(self, x):
-        # 3x256x512
-
-        x = torch.unsqueeze(x, 1)
-        # print("X:", x.shape)
-
-
-        x = self.layer_1(x)
-        # print("L:", x.shape)
-
-        x = torch.squeeze(x)
-        l = x
-        # print("L:", x.shape)
-
-        x = self.layer_2(x)
-        # print("L:", x.shape)
-
-        x = self.upsample_(x,2)
-        # print("L:", x.shape)
-
-        x = self.layer_3(x)
-        # print("L:", x.shape)
-
-        x = torch.cat((x,l),1)
-        # print("CL:", x.shape)
-
-        x = self.upsample_(x,2)
-        # print("L:", x.shape)
-
-        x = self.layer_4(x)
-        # print("L:", x.shape)
-
-
-        x = self.layer_5(x)
-        # print("L:", x.shape)
-
-        # x = self.layer_2(x)
-        # print("L:", x.shape)
-        # x = self.layer_2(x)
-        # print("L:", x.shape)
-        #
-        # x = self.layer_2(x)
-        # # print("L:", x.shape)
-        #
-        # x = self.layer_3(x)
-        # # print("L:", x.shape)
-        #
-        # x = self.layer_4(x)
-        # # print("L:", x.shape)
-
-        return x
-
-
-class EpiDataset(Dataset):
-    """Face Landmarks dataset."""
-
-    def __init__(self, folder):
-        """
-        Args:
-            csv_file (string): Path to the csv file with annotations.
-            root_dir (string): Directory with all the images.
-            transform (callable, optional): Optional transform to be applied
-                on a sample.
-        """
-        self.folder = folder
-        self.subfolders = sorted(glob.glob(os.path.join(self.folder, "*")))
-        self.cache = {}
-
-    def __len__(self):
-        return len(self.subfolders)
-
-    def loadRGB(self, folder):
-        images = sorted(glob.glob(os.path.join(folder, "*.jpg")))
-        images = list(map(cv2.imread, images))
-
-        stack = None
-
-        for index, img in enumerate(images):
-
-            rand_3color = 0.05 + np.random.rand(3)
-            rand_3color = rand_3color / np.sum(rand_3color)
-            R = rand_3color[0]
-            G = rand_3color[1]
-            B = rand_3color[2]
-
-            imgc = img.copy().astype(float)
-            gray = B * imgc[:, :, 2] + G * imgc[:, :, 1] + R * imgc[:, :, 0]  # cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            gray = gray.astype(np.uint8)
-
-            # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-            gray = np.expand_dims(gray, 0)
-            # print(gray.shape)
-            if stack is None:
-                stack = gray
-            else:
-                # stack = np.dstack((stack, gray))
-                stack = np.vstack((stack, gray))
-
-        # stack = cv2.flip(stack, 0)
-        stack = stack.astype(np.float32)
-        stack = stack / 255.
-        # print(stack.shape)
-        return stack
-
-    def loadDepth(self, folder):
-
-        images = sorted(glob.glob(os.path.join(folder, "*.exr")))
-
-        depth = cv2.imread(images[0], 2)
-
-        # depth = depth / np.max(depth)
-
-        depth = np.expand_dims(depth, 0)
-        return depth
-
-    def buildMask(self, depth):
-        mask = np.zeros(depth.shape, np.float32)
-        mask[depth < 1.0] = 1.0
-
-        return mask
-
-    def __getitem__(self, idx):
-
-        # if idx not in self.cache:
-        self.cache[idx] = {}
-        self.cache[idx]['rgb'] = self.loadRGB(self.subfolders[idx])
-        self.cache[idx]['depth'] = self.loadDepth(self.subfolders[idx])
-        self.cache[idx]['mask'] = self.buildMask(self.cache[idx]['depth'])
-
-        sample = {
-            'rgb': self.cache[idx]['rgb'],
-            'depth': self.cache[idx]['depth'],
-            'mask': self.cache[idx]['mask']
-        }
-
-        return sample
-
-
+learning_rate = float(sys.argv[1]) if len(sys.argv) > 1 else 0.001
+print("LEARNING RATE ", learning_rate)
 checkpoint_path = 'media/Checkpoints'
 
-net = mono_net(32, 1)
+# MODEL
+model = EpinetSimple(11, 3,1, "epi_simple_0", "media/Checkpoints/")
+torchsummary.summary(model, (3, 11, 32, 32))
 
-device = ("cuda:0" if torch.cuda.is_available() else "cpu")
-print("DEVICE:", device)
-net = net.to(device)
-
-for param in net.parameters():
+for param in model.parameters():
     param.requires_grad = True
 
+# OPTIMIZER
 lr = 0.001
-optimizer = optim.Adam(net.parameters(), lr=lr)
-# optimizer = optim.RMSprop(net.parameters(), lr=lr)
+optimizer = optim.Adam(model.parameters(), lr=lr)
 
-# criterion = nn.MSELoss()
+# DATASET
+dataset = EpiDisparityDataset(folder='/tmp/train', crop_size=32, focal=2000, max_disparity=255)
+dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=32, augmentation=False, focal=2000, max_disparity=255)
 
-# criterion = nn.CrossEntropyLoss()
+training_generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
+validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
+
+# LOAD MODEL IF ANY
+model.loadModel()
+
 criterion = nn.L1Loss()
 
-dataset = EpiDataset(folder='/tmp/gino/')
-dataset_test = EpiDataset(folder='/tmp/gino_test/')
-
-training_generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
-validation_generator = DataLoader(dataset_test, batch_size=4, shuffle=True, num_workers=0, drop_last=True)
-
-for epoch in range(5001):
+for epoch in range(50001):
 
     print("EPOCH", epoch)
 
-    if epoch % 200 == 0 and epoch >0:
-        if not os.path.exists(checkpoint_path):
-            os.makedirs(checkpoint_path)
-        torch.save(net.state_dict(), os.path.join(checkpoint_path,"saved_epoch_{}.pb".format(epoch)))
-        torch.save(net.state_dict(), os.path.join(checkpoint_path, "last_model.pb"))
+    if epoch % 10 == 0 and epoch > 0:
+        model.saveModel()
 
-    if epoch % 200 == 0 and epoch > 0:
-        lr = lr * 0.8
+    # CHANGE LEARNING RATE
+    if epoch % 2000 == 0 and epoch > 0:
+        lr = lr * 0.95
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
         print("LEANING RAT CHANGED", "!" * 20)
 
-    cumulative_loss = 0.0
+    loss_ = 0.0
     counter = 0.0
-    for index,batch in enumerate(training_generator):
-        net.train()
+    for index, batch in enumerate(training_generator):
+        model.train()
         optimizer.zero_grad()
 
         input = batch['rgb']
         target = batch['depth']
-        mask = batch['mask']
 
-        # print(input.shape)
-        # target = target * mask
-        #
-        # target = target.cpu().numpy()
-        # cv2.imshow("depth", (target[0][0]*255.).astype(np.uint8))
-        # # cv2.imshow("mask", (mask[0][0] * 255.).astype(np.uint8))
-        # cv2.waitKey(0)
-        # import sys
-        # sys.exit(0)
-
-        input = input.to(device)
-        target = target.to(device)
-        mask = target.to(device)
-
+        input = input.to(model.device)
+        target = target.to(model.device)
+        print("INPUT",input.shape)
         with torch.set_grad_enabled(True):
-            # print("INPUT", input.shape)
-            output = net(input)
+            output = model(input)
 
-            # print("OUTPUT", output.shape)
+            target = torch.unsqueeze(target[:, 5, :, :], 1)
 
-            # output_background = output * mask
-            # target_background = target * mask
-            #
-            # output_foreground = output * (1.0 - mask)
-            # target_foreground = target * (1.0 - mask)
-            #
-            # loss1 = criterion(output_background, target_background)
-            # loss2 = criterion(output_foreground, target_foreground)
-            # loss = loss1 + 1000 * loss2
-
-            loss = criterion(output, target)
+            loss = model.buildLoss(output, target)
 
             loss.backward()
             optimizer.step()
 
-            cumulative_loss += loss.detach().cpu().numpy()
+            loss_ += loss.detach().cpu().numpy()
             counter += 1.0
             print("Batch: {}/{}".format(index, len(training_generator)))
 
-    print("Loss", cumulative_loss / counter)
+    print("Loss", loss_ / counter)
 
-    #
-    for batch in validation_generator:
-        print("∞" * 20)
-        print("TEST " * 20)
-        net.eval()
-        input = batch['rgb']
-        target = batch['depth'].cpu().numpy()
+    if True:  # epoch % 5 == 0 and epoch > 0:
+        for crop_size in [32, 128, -1]:
+            stack = None
+            max_stack = 5
+            print("∞" * 20)
+            print("TEST {}".format(crop_size))
+            dataset_test.crop_size = crop_size
+            for index, batch in enumerate(validation_generator):
 
-        input = input.to(device)
+                model.eval()
+                input = batch['rgb']
+                target = batch['depth'].detach()
 
-        output = net(input).detach().cpu().numpy()
+                input = input.to(model.device)
 
-        map_gt = (target[0][0] * 255).astype(np.uint8)
-        map_pred = (output[0][0] * 255).astype(np.uint8)
+                output = model(input)
+                output = output.detach()
 
-        # print("SHAPE", map_pred.shape)
-        cv2.imwrite("/tmp/gt.png", map_gt)
-        cv2.imwrite("/tmp/pred.png", map_pred)
-        break
+                # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
+                # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
+
+                map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 5), cv2.COLORMAP_JET)
+                map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0]), cv2.COLORMAP_JET)
+
+                # print("INPUT ", input.shape)
+                rgb = dataset.displayableImage(input[0], 5)
+                map = np.vstack((rgb, map_gt, map_pred))
+
+                if stack is None:
+                    stack = map
+                else:
+                    stack = np.hstack((stack, map))
+
+                index += 1
+                if index >= max_stack:
+                    break
+
+            # print("SHAPE", map_pred.shape)
+            cv2.imwrite("/tmp/predictions_{}.png".format(crop_size), stack)
