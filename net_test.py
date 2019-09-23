@@ -40,7 +40,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 dataset = EpiDisparityDataset(folder='/tmp/train', crop_size=256)
 dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=256)
 
-training_generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
+training_generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
