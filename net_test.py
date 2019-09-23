@@ -77,9 +77,9 @@ for epoch in range(50001):
         with torch.set_grad_enabled(True):
             output, output_2, output_4, output_8 = model(input)
 
-            target = torch.unsqueeze(target[:, 5, :, :],1)
+            target = torch.unsqueeze(target[:, 5, :, :], 1)
 
-            loss =  model.buildLoss(output, target)
+            loss = model.buildLoss(output, target)
 
             loss.backward()
             optimizer.step()
@@ -112,7 +112,7 @@ for epoch in range(50001):
             map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 5), cv2.COLORMAP_JET)
             map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0]), cv2.COLORMAP_JET)
 
-            map = np.vstack((map_gt, map_pred))
+            map = np.vstack((input[:, 5, :, :], map_gt, map_pred))
 
             if stack is None:
                 stack = map
