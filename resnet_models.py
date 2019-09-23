@@ -302,8 +302,9 @@ class BaseNetwork(nn.Module):
         super(BaseNetwork, self).__init__()
         self.name = name
         self.checkpoints_path = checkpoints_path
-
         self.device = ("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    def pushToDevice(self):
         print("DEVICE:", self.device)
         self.to(self.device)
 
@@ -328,6 +329,7 @@ class EpiNet(BaseNetwork):
         self.epifeatures = EpiFeatures(11, 3, 8)
         self.resnet = ResnetModel(self.epifeatures.out_size, num_out_layers)
         self.criterion = torch.nn.L1Loss()
+        self.pushToDevice()
 
     def buildLoss(self, output, target):
         loss = self.criterion(output, target)
@@ -346,6 +348,7 @@ class EpinetSimple(BaseNetwork):  # vgg version
         self.l1 = resblock(self.features_layer.out_size, 128, 5, 1)
         self.out = get_disp(128 * 4, output_nc)
         self.criterion = torch.nn.L1Loss()
+        self.pushToDevice()
 
     def buildLoss(self, output, target):
         loss = self.criterion(output, target)

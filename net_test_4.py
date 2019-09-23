@@ -28,6 +28,8 @@ checkpoint_path = 'media/Checkpoints'
 
 # MODEL
 model = EpinetSimple(11, 3,1, "epi_simple_0", "media/Checkpoints/")
+
+
 torchsummary.summary(model, (3, 11, 32, 32))
 
 for param in model.parameters():
