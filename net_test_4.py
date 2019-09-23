@@ -18,7 +18,7 @@ from torchvision import transforms, utils
 import cv2
 import torchsummary
 from resnet_models import ResnetModel, EpiFeatures, EpiNet, EpinetSimple
-from epidataset import EpiDisparityDataset
+from epidataset import EpiDisparityDataset, EpiSingleDisparityDataset
 
 import sys
 
@@ -37,8 +37,8 @@ lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # DATASET
-dataset = EpiDisparityDataset(folder='/tmp/train', crop_size=32, focal=2000, max_disparity=255)
-dataset_test = EpiDisparityDataset(folder='/tmp/test', crop_size=32, augmentation=False, focal=2000, max_disparity=255)
+dataset = EpiSingleDisparityDataset(folder='/tmp/train', crop_size=32, focal=2000, max_disparity=255)
+dataset_test = EpiSingleDisparityDataset(folder='/tmp/test', crop_size=32, augmentation=False, focal=2000, max_disparity=255)
 
 training_generator = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=0, drop_last=False)
 validation_generator = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
@@ -83,7 +83,7 @@ for epoch in range(50001):
         with torch.set_grad_enabled(True):
             output = model(input)
 
-            target = torch.unsqueeze(target[:, 5, :, :], 1)
+            target = torch.unsqueeze(target[:, 0, :, :], 1)
 
             loss = model.buildLoss(output, target)
 
@@ -117,7 +117,7 @@ for epoch in range(50001):
                 # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
                 # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
-                map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 5), cv2.COLORMAP_JET)
+                map_gt = cv2.applyColorMap(dataset.displayableDepth(target[0], 0), cv2.COLORMAP_JET)
                 map_pred = cv2.applyColorMap(dataset.displayableDepth(output[0]), cv2.COLORMAP_JET)
 
                 # print("INPUT ", input.shape)
