@@ -200,8 +200,8 @@ def createOutputNode(output_path='/tmp/gino', name='OutFile', format='OPEN_EXR')
     return f
 
 
-output_path = '/tmp/vc_dataset_train/frame_{}/'
-for j in range(1):
+output_path = '/tmp/vc2_dataset_train/frame_{}/'
+for j in range(20):
     
     # RANDOMIZE TABLE
     randomizeTable()
@@ -247,11 +247,11 @@ for j in range(1):
 
 
     camera = bpy.data.objects["Camera"]
-    for i in range(1):
+    for i in range(11):
         print("#"*20)
 
 
-        camera.location.x += 0.002
+        camera.location.x += 0.0005
         #rotateObject(camera, 'Y', -0.25)
             
         num = str(i).zfill(5)

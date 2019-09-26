@@ -370,12 +370,12 @@ class EpiSingleDisparityDataset(Dataset):
     @staticmethod
     def displayableImage(image, depth=0):
         image2 = image.permute(2, 3, 0, 1)
-        img = image2.cpu().numpy()[:, :, :, depth]
+        img = image2.detach().cpu().numpy()[:, :, :, depth]
         return np.uint8(img * 255.)
 
     @staticmethod
     def displayableDepth(depth, d=0):
-        img = depth.cpu().numpy()[d, :, :]
+        img = depth.detach().cpu().numpy()[d, :, :]
         return np.uint8(img * 255.)
 
     @staticmethod
@@ -383,7 +383,7 @@ class EpiSingleDisparityDataset(Dataset):
         image2 = image.permute(1, 3, 0, 2)
         if y is None:
             y = int(image.shape[3] / 2)
-        img = image2.cpu().numpy()[:, :, :, y]
+        img = image2.detach().cpu().numpy()[:, :, :, y]
         return np.uint8(img * 255.)
 
     def loadImagesStack(self, folder):

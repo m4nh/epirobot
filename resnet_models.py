@@ -311,10 +311,10 @@ class BaseNetwork(nn.Module):
         self.checkpoints_path = checkpoints_path
 
 
-    def loadModel(self, tag='LAST'):
+    def loadModel(self, tag='LAST', device='cuda:0'):
         last_model_path = os.path.join(self.checkpoints_path, "{}_{}.pb".format(self.name, tag))
         if os.path.exists(last_model_path):
-            self.load_state_dict(torch.load(last_model_path))
+            self.load_state_dict(torch.load(last_model_path, map_location=device))
             print("*" * 10, self.name, "MODEL LOADED!", "*" * 10)
 
     def saveModel(self, tag='LAST'):
