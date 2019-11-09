@@ -227,7 +227,7 @@ for epoch in range(5000):
         for index, batch in enumerate(generator_test):
 
             model.eval()
-            input = batch
+            input = batch['input']
             input = input.to(device)
 
             output = model(input)
