@@ -239,7 +239,7 @@ for epoch in range(5000):
 
     if True:
         stack = None
-        max_stack = 8
+        max_stack = 4
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(generator_test):
@@ -270,7 +270,7 @@ for epoch in range(5000):
             if index >= max_stack:
                 break
 
-        cv2.imwrite("/tmp/ano_predictions.png", stack)
+        cv2.imwrite("/tmp/ano_predictions.jpg", stack)
 
 for d in generator:
     print(d.shape)
