@@ -195,7 +195,7 @@ for epoch in range(5000):
     loss_ = 0.0
     counter = 0.0
     for gen in [generator, generator_neg]:
-        for index, batch in enumerate(generator):
+        for index, batch in enumerate(gen):
             model.train()
             optimizer.zero_grad()
 
