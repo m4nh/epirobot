@@ -14,7 +14,7 @@ import torch.optim as optim
 import cv2
 from torch.autograd import Variable
 from math import exp
-from kornia import ssim
+from kornia.losses import SSIM
 
 
 class AnoDataset(Dataset):
@@ -220,7 +220,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-criterion = ssim
+criterion = SSIM(11)
 
 for epoch in range(5000):
 
@@ -246,7 +246,7 @@ for epoch in range(5000):
                 output = model(input)
                 loss = criterion(
                     nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
-                    output, 11)
+                    output)
 
                 loss.backward()
                 optimizer.step()
