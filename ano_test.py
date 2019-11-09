@@ -246,7 +246,7 @@ for epoch in range(5000):
                 output = model(input)
                 loss = criterion(
                     nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
-                    output)
+                    output, 11)
 
                 loss.backward()
                 optimizer.step()
