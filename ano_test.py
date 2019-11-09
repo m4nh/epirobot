@@ -197,7 +197,6 @@ class AnoNet(BaseNetwork):
 
 model = AnoNet(name='anonet', checkpoints_path='/tmp')
 
-
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
@@ -220,7 +219,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-criterion = SSIM(11)
+criterion = SSIM(11, reduction='mean')
 
 for epoch in range(5000):
 
@@ -231,7 +230,7 @@ for epoch in range(5000):
 
     loss_ = 0.0
     counter = 0.0
-    for gen in [generator]:#, generator_neg]:
+    for gen in [generator]:  # , generator_neg]:
         for index, batch in enumerate(gen):
             model.train()
             optimizer.zero_grad()
@@ -247,7 +246,7 @@ for epoch in range(5000):
                 loss = criterion(
                     nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
                     output)
-                print("LOSS:",loss.shape)
+                print("LOSS:", loss.shape)
 
                 loss.backward()
                 optimizer.step()
