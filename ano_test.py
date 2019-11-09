@@ -239,7 +239,7 @@ for epoch in range(5000):
 
             model.eval()
             input = batch
-            input = input.to(model.device)
+            input = input.to(device)
 
             output = model(input)
             output = output.detach()
