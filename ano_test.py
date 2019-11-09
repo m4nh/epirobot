@@ -196,7 +196,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 dataset = AnoDataset(folder='/tmp/ano_dataset_train')
 dataset_test = AnoDataset(folder='/tmp/ano_dataset_test')
-generator = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=False)
+generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 generator_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
 
