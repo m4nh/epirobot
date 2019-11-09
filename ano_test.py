@@ -177,7 +177,7 @@ class AnoNet(BaseNetwork):
 
 
 model = AnoNet(name='anonet', checkpoints_path='/tmp')
-torchsummary.summary(model, (3, 700, 700))
+# torchsummary.summary(model, (3, 700, 700))
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
