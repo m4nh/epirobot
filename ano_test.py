@@ -314,7 +314,7 @@ for epoch in range(5000):
 
             with torch.set_grad_enabled(True):
                 output = model(input)
-                loss = criterion(
+                loss = -criterion(
                     nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
                     output)
 
