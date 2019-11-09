@@ -239,7 +239,7 @@ for epoch in range(5000):
             # print("INPUT ", input.shape)
             rgb = AnoDataset.displayableImage(model.filterInputImage(input)[0])
             out = AnoDataset.displayableImage(model.filterInputImage(output)[0])
-
+            print("OKKK",rgb.shape, out.shape)
             map = np.vstack((rgb, out))
 
             if stack is None:
