@@ -212,7 +212,7 @@ dataset_test = AnoDataset(folder='/tmp/ano_dataset_test')
 
 generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
-generator_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
+generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
 model.loadModel()
@@ -256,7 +256,7 @@ for epoch in range(5000):
 
     if True:
         stack = None
-        max_stack = 4
+        max_stack = 20
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(generator_test):
