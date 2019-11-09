@@ -382,11 +382,11 @@ class EpinetTruned(BaseNetwork):  # vgg version
     def __init__(self, depth, input_nc, output_nc, name, checkpoints_path):
         super(EpinetSimple, self).__init__(name, checkpoints_path)
 
-        self.l1 = epiconv(num_in_layers=)
+        self.l1 = epiconv(num_in_layers=input_nc)
         self.out = get_disp(128 * 4, output_nc)
         self.criterion = torch.nn.L1Loss()
 
-    def epiLayer(self):
+
 
 
     def buildLoss(self, output, target):
