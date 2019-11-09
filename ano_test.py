@@ -219,7 +219,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-criterion = SSIM(11, reduction='mean')
+criterion = nn.MSELoss()# SSIM(11, reduction='mean')
 
 for epoch in range(5000):
 
@@ -243,7 +243,7 @@ for epoch in range(5000):
 
             with torch.set_grad_enabled(True):
                 output = model(input)
-                loss = -criterion(
+                loss = criterion(
                     nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
                     output)
                 print("LOSS:", loss.shape)
