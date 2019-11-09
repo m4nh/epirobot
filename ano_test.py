@@ -205,7 +205,7 @@ for param in model.parameters():
     param.requires_grad = True
 
 # OPTIMIZER
-lr = 0.0005
+lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 dataset = AnoDataset(folder='/tmp/ano_dataset_train')
@@ -219,7 +219,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-criterion = SSIM(11, reduction='mean')
+criterion = SSIM(11, reduction='sum')
 
 for epoch in range(5000):
 
