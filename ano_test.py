@@ -54,7 +54,6 @@ class AnoDataset(Dataset):
 
     @staticmethod
     def displayableImage(image):
-        print("PERMUTING",image.shape)
         img = image.permute(1, 2, 0)
         img = img.cpu().numpy()
         return np.uint8(img * 255.)
@@ -64,7 +63,6 @@ class AnoDataset(Dataset):
 
         img = io.imread(self.images[idx])
         img = torch.Tensor(np.float32(img) / 255.)
-        print("BOH", img.shape)
         img = img.permute(2, 0, 1)
         return img
 
@@ -183,6 +181,7 @@ model = AnoNet(name='anonet', checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
+model = model.to(device)
 
 for param in model.parameters():
     param.requires_grad = True
