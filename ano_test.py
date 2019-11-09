@@ -235,6 +235,10 @@ for epoch in range(5000):
     print("Loss", loss_/counter)
 
     if True:
+        stack = None
+        max_stack = 8
+        print("∞" * 20)
+        print("TEST " * 20)
         for index, batch in enumerate(generator_test):
 
             model.eval()
@@ -260,7 +264,7 @@ for epoch in range(5000):
                 stack = np.hstack((stack, map))
 
             index += 1
-            if index >= 4:
+            if index >= max_stack:
                 break
 
         cv2.imwrite("/tmp/ano_predictions.png", stack)
