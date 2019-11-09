@@ -54,6 +54,7 @@ class AnoDataset(Dataset):
 
     @staticmethod
     def displayableImage(image):
+        print("PERMUTING",image.shape)
         img = image.permute(1, 2, 0)
         img = img.cpu().numpy()
         return np.uint8(img * 255.)
