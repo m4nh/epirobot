@@ -64,6 +64,7 @@ class AnoDataset(Dataset):
 
         img = io.imread(self.images[idx])
         img = torch.Tensor(np.float32(img) / 255.)
+        print("BOH", img.shape)
         img = img.permute(2, 0, 1)
         return img
 
