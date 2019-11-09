@@ -141,7 +141,9 @@ class AnoNet(BaseNetwork):
         channels /= 2
         self.upconv1 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
 
-        self.prediction = nn.Conv2d(int(channels), 3, 3, 1, 1)
+        self.conv_last = nn.Conv2d(int(channels), 3, 3, 1, 1)
+        self.prediction = nn.Sigmoid()
+
 
 
     # def buildLoss(self, output, target):
@@ -171,6 +173,7 @@ class AnoNet(BaseNetwork):
         x = nn.functional.interpolate(x, scale_factor=2, mode='bilinear', align_corners=True)
         x = self.upconv1(x)
 
+        x = self.conv_last(x)
         x = self.prediction(x)
 
         return x
