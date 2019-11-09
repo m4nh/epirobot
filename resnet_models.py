@@ -6,6 +6,19 @@ import torch.nn.functional as F
 import importlib
 import os
 
+class epiconv(nn.Module):
+    def __init__(self, num_in_layers, num_out_layers, kernel_size, stride):
+        super(conv, self).__init__()
+        self.kernel_size = kernel_size
+        self.conv_base = nn.Conv2d(num_in_layers, num_out_layers, kernel_size=kernel_size, stride=stride, groups=num_in_layers)
+        self.normalize = nn.BatchNorm2d(num_out_layers)
+
+    def forward(self, x):
+        p = int(np.floor((self.kernel_size - 1) / 2))
+        p2d = (p, p, p, p)
+        x = self.conv_base(F.pad(x, p2d))
+        x = self.normalize(x)
+
 
 class conv(nn.Module):
     def __init__(self, num_in_layers, num_out_layers, kernel_size, stride):
@@ -350,6 +363,31 @@ class EpinetSimple(BaseNetwork):  # vgg version
         self.l1 = resblock(self.features_layer.out_size, 128, 10, 1)
         self.out = get_disp(128 * 4, output_nc)
         self.criterion = torch.nn.L1Loss()
+
+    def buildLoss(self, output, target):
+        loss = self.criterion(output, target)
+        return loss
+
+    def forward(self, x):
+        # 3x256x512
+        debug = True
+
+        l0 = self.features_layer(x)
+        l0 = torch.squeeze(l0, 2)
+        l1 = self.l1(l0)
+        o = self.out(l1)
+        return o
+
+class EpinetTruned(BaseNetwork):  # vgg version
+    def __init__(self, depth, input_nc, output_nc, name, checkpoints_path):
+        super(EpinetSimple, self).__init__(name, checkpoints_path)
+
+        self.l1 = epiconv(num_in_layers=)
+        self.out = get_disp(128 * 4, output_nc)
+        self.criterion = torch.nn.L1Loss()
+
+    def epiLayer(self):
+
 
     def buildLoss(self, output, target):
         loss = self.criterion(output, target)
