@@ -13,44 +13,16 @@ from skimage.transform import rescale
 import torch.optim as optim
 import cv2
 
+
 class AnoDataset(Dataset):
 
-    def __init__(self, folder):
-
+    def __init__(self, folder, is_negative=False):
         self.folder = folder
-        self.images = sorted(glob.glob(os.path.join(self.folder,'*')))
+        self.images = sorted(glob.glob(os.path.join(self.folder, '*')))
+        self.is_negative = is_negative
 
     def __len__(self):
         return len(self.images)
-
-
-    # def getImageTransformPipeline(self, brightness=0.5, contrast=0.3, saturation=0.2, hue=0.3):
-    #     # brightness = 0.3
-    #     # contrast = 0.3
-    #     # saturation = 1.0
-    #     # hue = 0.5
-    #
-    #     trans = []
-    #     if brightness > 0:
-    #         brightness_factor = np.random.uniform(max(0.0, 1 - brightness), 1 + brightness)
-    #         trans.append(Lambda(lambda img: FT.adjust_brightness(img, brightness_factor)))
-    #
-    #     if contrast > 0:
-    #         contrast_factor = np.random.uniform(max(0.0, 1 - contrast), 1 + contrast)
-    #         trans.append(Lambda(lambda img: FT.adjust_contrast(img, contrast_factor)))
-    #
-    #     if saturation > 0:
-    #         saturation_factor = np.random.uniform(max(0.0, 1 - saturation), 1 + saturation)
-    #         trans.append(Lambda(lambda img: FT.adjust_saturation(img, saturation_factor)))
-    #
-    #     if hue > 0:
-    #         hue_factor = np.random.uniform(-hue, hue)
-    #         trans.append(Lambda(lambda img: FT.adjust_hue(img, hue_factor)))
-    #
-    #     random.shuffle(trans)
-    #     trans = [transforms.ToPILImage()] + trans + [transforms.ToTensor()]
-    #     trans = transforms.Compose(trans)
-    #     return trans
 
     @staticmethod
     def displayableImage(image):
@@ -64,7 +36,16 @@ class AnoDataset(Dataset):
         img = io.imread(self.images[idx])
         img = torch.Tensor(np.float32(img) / 255.)
         img = img.permute(2, 0, 1)
-        return img
+
+        input = img
+        output = img.clone()
+
+        if self.is_negative:
+            output = torch.zeros_like(input)
+        return {
+            'input': input,
+            'target': output
+        }
 
 
 class conv2DBatchNormRelu(nn.Module):
@@ -144,14 +125,12 @@ class AnoNet(BaseNetwork):
         self.conv_last = nn.Conv2d(int(channels), 3, 3, 1, 1)
         self.prediction = nn.Sigmoid()
 
-
-
     # def buildLoss(self, output, target):
     #     loss = self.criterion(output, target)
     #     return loss
 
-    def filterInputImage(self,x):
-        return nn.functional.interpolate(x, size=(512,512), mode='bilinear', align_corners=True)
+    def filterInputImage(self, x):
+        return nn.functional.interpolate(x, size=(512, 512), mode='bilinear', align_corners=True)
 
     def forward(self, x):
         x = self.filterInputImage(x)
@@ -193,19 +172,18 @@ for param in model.parameters():
 lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
-
 dataset = AnoDataset(folder='/tmp/ano_dataset_train')
+dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
 dataset_test = AnoDataset(folder='/tmp/ano_dataset_test')
-generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
-generator_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
+generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
+generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
+generator_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
 model.loadModel()
 
-
 criterion = nn.MSELoss()
-
 
 for epoch in range(5000):
 
@@ -216,26 +194,30 @@ for epoch in range(5000):
 
     loss_ = 0.0
     counter = 0.0
-    for index, batch in enumerate(generator):
-        model.train()
-        optimizer.zero_grad()
+    for gen in [generator, generator_neg]:
+        for index, batch in enumerate(generator):
+            model.train()
+            optimizer.zero_grad()
 
-        input = batch
-        input = input.to(device)
+            input = batch['input']
+            input = input.to(device)
 
-        with torch.set_grad_enabled(True):
+            target = batch['target']
+            target = target.to(device)
 
-            output = model(input)
-            loss = criterion(nn.functional.interpolate(input, size=(512,512), mode='bilinear', align_corners=True), output)
+            with torch.set_grad_enabled(True):
+                output = model(input)
+                loss = criterion(nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
+                                 output)
 
-            loss.backward()
-            optimizer.step()
+                loss.backward()
+                optimizer.step()
 
-            loss_ += loss.detach().cpu().numpy()
-            counter += 1.0
-            print("Batch: {}/{}".format(index, len(generator)))
+                loss_ += loss.detach().cpu().numpy()
+                counter += 1.0
+                print("Batch: {}/{}".format(index, len(generator)))
 
-    print("Loss", loss_/counter)
+    print("Loss", loss_ / counter)
 
     if True:
         stack = None
@@ -253,7 +235,6 @@ for epoch in range(5000):
 
             # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
             # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
-
 
             # print("INPUT ", input.shape)
             rgb = AnoDataset.displayableImage(model.filterInputImage(input)[0])
