@@ -193,12 +193,12 @@ class AnoNet(BaseNetwork):
 
 
 model = AnoNet(name='anonet', checkpoints_path='/tmp')
-torchsummary.summary(model, (3, 700, 700))
+
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
-
+torchsummary.summary(model, (3, 700, 700))
 for param in model.parameters():
     param.requires_grad = True
 
