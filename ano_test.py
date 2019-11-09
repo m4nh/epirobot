@@ -272,10 +272,16 @@ for epoch in range(5000):
             # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
             # print("INPUT ", input.shape)
+
+            img_in = model.filterInputImage(input)[0]
+            img_out = model.filterInputImage(output)[0]
+            img_diff = torch.abs(img_in - img_out)
+
             rgb = AnoDataset.displayableImage(model.filterInputImage(input)[0])
             out = AnoDataset.displayableImage(model.filterInputImage(output)[0])
-            print("OKKK", rgb.shape, out.shape)
-            map = np.vstack((rgb, out))
+            diff = AnoDataset.displayableImage(img_diff)
+
+            map = np.vstack((rgb, out, diff))
 
             if stack is None:
                 stack = map
