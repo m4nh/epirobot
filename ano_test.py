@@ -205,7 +205,7 @@ for param in model.parameters():
     param.requires_grad = True
 
 # OPTIMIZER
-lr = 0.0001
+lr = 0.0005
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 dataset = AnoDataset(folder='/tmp/ano_dataset_train')
