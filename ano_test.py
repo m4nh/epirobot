@@ -242,7 +242,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 model.loadModel()
 
 criterion2 = nn.L1Loss()  # SSIM(11, reduction='mean')
-criterion = SSIM(11, reduction='mean')
+criterion = SSIM(5, reduction='mean')
 
 for epoch in range(5000):
 
