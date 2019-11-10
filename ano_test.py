@@ -15,6 +15,7 @@ import cv2
 from torch.autograd import Variable
 from math import exp
 from kornia.losses import SSIM
+from torchvision import transforms, utils
 
 
 class AnoDataset(Dataset):
@@ -23,6 +24,15 @@ class AnoDataset(Dataset):
         self.folder = folder
         self.images = sorted(glob.glob(os.path.join(self.folder, '*')))
         self.is_negative = is_negative
+
+        self.tf = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Resize((512, 512)),
+                transforms.Grayscale(),
+                transforms.ToTensor()
+            ]
+        )
 
     def __len__(self):
         return len(self.images)
@@ -40,14 +50,14 @@ class AnoDataset(Dataset):
         img = torch.Tensor(np.float32(img) / 255.)
         img = img.permute(2, 0, 1)
 
-        input = img
-        output = img.clone()
+        input_image = self.tf(img)
+        target_image = input_image.clone()
 
         if self.is_negative:
-            output = torch.zeros_like(input)
+            target_image = torch.zeros_like(input_image)
         return {
-            'input': input,
-            'target': output
+            'input': input_image,
+            'target': target_image
         }
 
 
@@ -97,8 +107,10 @@ class AnoNet(BaseNetwork):
     def __init__(self, name, checkpoints_path):
         super(AnoNet, self).__init__(name=name, checkpoints_path=checkpoints_path)
 
+        self.input_channels = 1
+
         channels = 16
-        self.conv1 = conv2DBatchNormRelu(3, channels, 3, 1, 1)
+        self.conv1 = conv2DBatchNormRelu(self.input_channels, channels, 3, 1, 1)
         self.downsample1 = nn.MaxPool2d(2)
 
         channels *= 2
@@ -147,7 +159,7 @@ class AnoNet(BaseNetwork):
         channels /= 2
         self.upconv1 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
 
-        self.conv_last = nn.Conv2d(int(channels), 3, 3, 1, 1)
+        self.conv_last = nn.Conv2d(int(channels), self.input_channels, 3, 1, 1)
         self.prediction = nn.Tanh()
 
     # def buildLoss(self, output, target):
@@ -158,7 +170,7 @@ class AnoNet(BaseNetwork):
         return nn.functional.interpolate(x, size=(512, 512), mode='bilinear', align_corners=True)
 
     def forward(self, x):
-        x = self.filterInputImage(x)
+
         x = self.conv1(x)
         x = self.downsample1(x)
         x = self.conv2(x)
@@ -200,7 +212,7 @@ model = AnoNet(name='anonet', checkpoints_path='/tmp')
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
-torchsummary.summary(model, (3, 700, 700))
+torchsummary.summary(model, (1, 512, 512))
 for param in model.parameters():
     param.requires_grad = True
 
@@ -219,7 +231,8 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-criterion = nn.MSELoss()# SSIM(11, reduction='mean')
+#criterion = nn.MSELoss()  # SSIM(11, reduction='mean')
+criterion = SSIM(11, reduction='mean')
 
 for epoch in range(5000):
 
@@ -238,15 +251,17 @@ for epoch in range(5000):
             input = batch['input']
             input = input.to(device)
 
+
             target = batch['target']
             target = target.to(device)
 
             with torch.set_grad_enabled(True):
                 output = model(input)
+
                 loss = criterion(
-                    nn.functional.interpolate(target, size=(512, 512), mode='bilinear', align_corners=True),
-                    output)
-                print("LOSS:", loss.shape)
+                    target,
+                    output
+                )
 
                 loss.backward()
                 optimizer.step()
@@ -276,12 +291,12 @@ for epoch in range(5000):
 
             # print("INPUT ", input.shape)
 
-            img_in = model.filterInputImage(input)[0]
-            img_out = model.filterInputImage(output)[0]
+            img_in = input[0]
+            img_out = output[0]
             img_diff = torch.abs(img_in - img_out)
 
-            rgb = AnoDataset.displayableImage(model.filterInputImage(input)[0])
-            out = AnoDataset.displayableImage(model.filterInputImage(output)[0])
+            rgb = AnoDataset.displayableImage(img_in)
+            out = AnoDataset.displayableImage(img_out)
             diff = AnoDataset.displayableImage(img_diff)
 
             map = np.vstack((rgb, out, diff))
