@@ -20,20 +20,30 @@ from torchvision import transforms, utils
 
 class AnoDataset(Dataset):
 
-    def __init__(self, folder, is_negative=False):
+    def __init__(self, folder, is_test=False, is_negative=False):
         self.folder = folder
         self.images = sorted(glob.glob(os.path.join(self.folder, '*')))
         self.is_negative = is_negative
 
-        self.tf = transforms.Compose(
-            [
-                transforms.ToPILImage(),
-                transforms.Resize((512, 512)),
-                transforms.Grayscale(),
-                transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
-                transforms.ToTensor()
-            ]
-        )
+        if not is_test:
+            self.tf = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.Resize((512, 512)),
+                    transforms.Grayscale(),
+                    transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
+                    transforms.ToTensor()
+                ]
+            )
+        else:
+            self.tf = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.Resize((512, 512)),
+                    transforms.Grayscale(),
+                    transforms.ToTensor()
+                ]
+            )
 
     def __len__(self):
         return len(self.images)
@@ -171,7 +181,6 @@ class AnoNet(BaseNetwork):
         return nn.functional.interpolate(x, size=(512, 512), mode='bilinear', align_corners=True)
 
     def forward(self, x):
-
         x = self.conv1(x)
         x = self.downsample1(x)
         x = self.conv2(x)
@@ -223,7 +232,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 dataset = AnoDataset(folder='/tmp/ano_dataset_train')
 dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
-dataset_test = AnoDataset(folder='/tmp/ano_dataset_test')
+dataset_test = AnoDataset(folder='/tmp/ano_dataset_test' ,is_test=True)
 
 generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
@@ -232,7 +241,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-#criterion = nn.MSELoss()  # SSIM(11, reduction='mean')
+# criterion = nn.MSELoss()  # SSIM(11, reduction='mean')
 criterion = SSIM(11, reduction='mean')
 
 for epoch in range(5000):
@@ -251,7 +260,6 @@ for epoch in range(5000):
 
             input = batch['input']
             input = input.to(device)
-
 
             target = batch['target']
             target = target.to(device)
