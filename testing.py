@@ -1,58 +1,75 @@
+from __future__ import absolute_import, division, print_function
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-
-import numpy as np
+import importlib
+import os, glob
+from resnet_models import BaseNetwork
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
+import torchsummary
+from skimage import io, transform
+from skimage.transform import rescale
+import torch.optim as optim
 import cv2
-import glob
-import os
-
-from epidataset import EpiDataset
-
-dataset = EpiDataset(folder='/tmp/gino')
-
-dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0, drop_last=False)
-
-index = 0
-while True:
-
-    d = dataset[index]
-    data = d['rgb']
-    depth_data = d['depth']
-    print("RGB", data.shape)
-    print("DEPTH", depth_data.shape)
-
-    for i in range(11):
-        print(i)
-        img = EpiDataset.displayableImage(data, depth=i)
-        depth = EpiDataset.displayableDepth(depth_data, depth=i)
-        print(img.shape)
-        print(depth.shape)
-        cv2.imwrite("/tmp/art.png",cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        cv2.imshow("image", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        cv2.imshow("depth", cv2.applyColorMap(depth, cv2.COLORMAP_JET))
-        cv2.waitKey(0)
-
-    index = (index +1)% len(dataset)
+from torch.autograd import Variable
+from math import exp
+from kornia.losses import SSIM
+from torchvision import transforms, utils
 
 
+class AnoDataset(Dataset):
 
-while True:
-    for d in dataloader:
-        print(d['rgb'].shape)
-        image = d['rgb'][0]
-        print(image.shape)
+    def __init__(self, folder, is_negative=False):
+        self.folder = folder
+        self.images = sorted(glob.glob(os.path.join(self.folder, '*')))
+        self.is_negative = is_negative
 
-        # for y in range(50):
-        #     img = EpiDataset.displayableEpiImage(image, y=y)
-        #     print(img.shape)
-        #     cv2.imshow("image", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        #     cv2.waitKey(0)
+        self.tf = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Resize((512, 512)),
+                transforms.Grayscale(),
+                transforms.RandomAffine(180, (0.02, 0.02),fillcolor=200),
+                transforms.ToTensor()
+            ]
+        )
 
-        img = EpiDataset.displayableImage(image)
-        print(img.shape)
-        cv2.imshow("image", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        cv2.waitKey(0)
+    def __len__(self):
+        return len(self.images)
+
+    @staticmethod
+    def displayableImage(image):
+        img = image.permute(1, 2, 0)
+        img = img.cpu().numpy()
+        return np.uint8(img * 255.)
+
+    def __getitem__(self, idx):
+        # print(self.subfolders[idx])
+
+        img = io.imread(self.images[idx])
+        img = torch.Tensor(np.float32(img) / 255.)
+        img = img.permute(2, 0, 1)
+
+        input_image = self.tf(img)
+        target_image = input_image.clone()
+
+        if self.is_negative:
+            target_image = torch.zeros_like(input_image)
+        return {
+            'input': input_image,
+            'target': target_image
+        }
+
+
+dataset = AnoDataset(folder='/tmp/ano_dataset_train')
+generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
+
+# LOAD MODEL IF
+for d in dataset:
+    img = dataset[0]['input']
+    img = np.squeeze((img.numpy() * 255.).astype(np.uint8), 0)
+
+    cv2.imshow("image", img)
+    cv2.waitKey(0)
+    print(img.shape)
