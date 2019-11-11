@@ -30,7 +30,7 @@ class AnoDataset(Dataset):
                 [
                     transforms.ToPILImage(),
                     transforms.Resize((512, 512)),
-                    transforms.Grayscale(),
+                    # transforms.Grayscale(),
                     transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
                     transforms.ToTensor()
                 ]
@@ -40,7 +40,7 @@ class AnoDataset(Dataset):
                 [
                     transforms.ToPILImage(),
                     transforms.Resize((512, 512)),
-                    transforms.Grayscale(),
+                    # transforms.Grayscale(),
                     transforms.ToTensor()
                 ]
             )
@@ -217,7 +217,7 @@ class AnoNet(BaseNetwork):
         return (x + 1.0) / 2.0
 
 
-model = AnoNet(name='anonet_mix', checkpoints_path='/tmp')
+model = AnoNet(name='anonet_l1ssim', checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
@@ -232,7 +232,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 dataset = AnoDataset(folder='/tmp/ano_dataset_train')
 dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
-dataset_test = AnoDataset(folder='/tmp/ano_dataset_test' ,is_test=True)
+dataset_test = AnoDataset(folder='/tmp/ano_dataset_test', is_test=True)
 
 generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
@@ -241,8 +241,8 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 # LOAD MODEL IF ANY
 model.loadModel()
 
-criterion2 = nn.L1Loss()  # SSIM(11, reduction='mean')
-criterion = SSIM(5, reduction='mean')
+LossL1 = nn.L1Loss()  # SSIM(11, reduction='mean')
+LossSSIM = SSIM(5, reduction='mean')
 
 for epoch in range(5000):
 
@@ -267,15 +267,20 @@ for epoch in range(5000):
             with torch.set_grad_enabled(True):
                 output = model(input)
 
-                loss1 = criterion(
-                    target,
-                    output
-                )
+                input_r = input[:, 0, :, :]
+                input_g = input[:, 1, :, :]
+                input_b = input[:, 2, :, :]
 
-                loss2 = criterion2(
-                    target,
-                    output
-                )
+                output_r = output[:, 0, :, :]
+                output_g = output[:, 1, :, :]
+                output_b = output[:, 2, :, :]
+
+                loss1 = LossL1(input, output)
+
+                loss2_r = LossSSIM(input_r, output_r)
+                loss2_g = LossSSIM(input_g, output_g)
+                loss2_b = LossSSIM(input_b, output_b)
+                loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
                 loss = loss1 + loss2
 
