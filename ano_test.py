@@ -120,7 +120,7 @@ class AnoNet(BaseNetwork):
 
         self.input_channels = input_channels
 
-        channels = 16
+        channels = 32
         self.conv1 = conv2DBatchNormRelu(self.input_channels, channels, 3, 1, 1)
         self.downsample1 = nn.MaxPool2d(2)
 
@@ -218,7 +218,7 @@ class AnoNet(BaseNetwork):
 
 
 input_channels = 3
-model = AnoNet(name='anonet_l1ssim', input_channels=input_channels, checkpoints_path='/tmp')
+model = AnoNet(name='anonet_l1ssim_huge', input_channels=input_channels, checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
