@@ -115,10 +115,10 @@ def class_for_name(module_name, class_name):
 
 class AnoNet(BaseNetwork):
 
-    def __init__(self, name, checkpoints_path):
+    def __init__(self, name, input_channels, checkpoints_path):
         super(AnoNet, self).__init__(name=name, checkpoints_path=checkpoints_path)
 
-        self.input_channels = 1
+        self.input_channels = input_channels
 
         channels = 16
         self.conv1 = conv2DBatchNormRelu(self.input_channels, channels, 3, 1, 1)
@@ -217,7 +217,7 @@ class AnoNet(BaseNetwork):
         return (x + 1.0) / 2.0
 
 
-model = AnoNet(name='anonet_l1ssim', checkpoints_path='/tmp')
+model = AnoNet(name='anonet_l1ssim', input_channels=3, checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
