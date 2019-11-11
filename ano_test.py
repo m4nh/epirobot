@@ -217,12 +217,13 @@ class AnoNet(BaseNetwork):
         return (x + 1.0) / 2.0
 
 
-model = AnoNet(name='anonet_l1ssim', input_channels=3, checkpoints_path='/tmp')
+input_channels = 3
+model = AnoNet(name='anonet_l1ssim', input_channels=input_channels, checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
-torchsummary.summary(model, (1, 512, 512))
+torchsummary.summary(model, (input_channels, 512, 512))
 for param in model.parameters():
     param.requires_grad = True
 
