@@ -268,13 +268,13 @@ for epoch in range(5000):
             with torch.set_grad_enabled(True):
                 output = model(input)
 
-                input_r = input[:, 0, :, :]
-                input_g = input[:, 1, :, :]
-                input_b = input[:, 2, :, :]
+                input_r = torch.unsqueeze(input[:, 0, :, :], 1)
+                input_g = torch.unsqueeze(input[:, 1, :, :], 1)
+                input_b = torch.unsqueeze(input[:, 2, :, :], 1)
 
-                output_r = output[:, 0, :, :]
-                output_g = output[:, 1, :, :]
-                output_b = output[:, 2, :, :]
+                output_r = torch.unsqueeze(output[:, 0, :, :], 1)
+                output_g = torch.unsqueeze(output[:, 1, :, :], 1)
+                output_b = torch.unsqueeze(output[:, 2, :, :], 1)
 
                 loss1 = LossL1(input, output)
 
