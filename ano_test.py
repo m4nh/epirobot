@@ -22,7 +22,7 @@ import torchvision
 
 class AnoDataset(Dataset):
 
-    def __init__(self, folder, is_test=False, is_negative=False):
+    def __init__(self, folder, is_test=False, is_negative=False, resize=256):
         self.folder = folder
         self.images = sorted(glob.glob(os.path.join(self.folder, '*')))
         self.is_negative = is_negative
@@ -31,7 +31,7 @@ class AnoDataset(Dataset):
             self.tf = transforms.Compose(
                 [
                     transforms.ToPILImage(),
-                    transforms.Resize((512, 512)),
+                    transforms.Resize((resize, resize)),
                     # transforms.Grayscale(),
                     transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
                     transforms.ToTensor()
@@ -41,7 +41,7 @@ class AnoDataset(Dataset):
             self.tf = transforms.Compose(
                 [
                     transforms.ToPILImage(),
-                    transforms.Resize((512, 512)),
+                    transforms.Resize((resize, resize)),
                     # transforms.Grayscale(),
                     transforms.ToTensor()
                 ]
@@ -211,12 +211,6 @@ class AnoNet(BaseNetwork):
         self.conv_last = nn.Conv2d(int(channels), self.input_channels, 3, 1, 1)
         self.prediction = nn.Tanh()
 
-    # def buildLoss(self, output, target):
-    #     loss = self.criterion(output, target)
-    #     return loss
-
-    def filterInputImage(self, x):
-        return nn.functional.interpolate(x, size=(512, 512), mode='bilinear', align_corners=True)
 
     def forward(self, x):
         l1, l2, l3, l4, l5, l6, l7, x = self.encoder(x)
@@ -261,13 +255,14 @@ def gram_matrix(input):
 # import sys
 # sys.exit(0)
 
+image_resize = 256
 input_channels = 3
 model = AnoNet(name='anonet_style', input_channels=input_channels, checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
 model = model.to(device)
-torchsummary.summary(model, (input_channels, 512, 512))
+torchsummary.summary(model, (input_channels, image_resize, image_resize))
 for param in model.parameters():
     param.requires_grad = True
 
@@ -278,9 +273,9 @@ writer = SummaryWriter("/tmp/runs")
 lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
-dataset = AnoDataset(folder='/tmp/ano_dataset_train')
+dataset = AnoDataset(folder='/tmp/ano_dataset_train', resize=image_resize)
 # dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
-dataset_test = AnoDataset(folder='/tmp/ano_dataset_test', is_test=True)
+dataset_test = AnoDataset(folder='/tmp/ano_dataset_test', is_test=True, resize=image_resize)
 
 generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 # generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
@@ -345,7 +340,7 @@ for epoch in range(5000):
                         gram_matrix(input_features[lindex]),
                         gram_matrix(output_features[lindex])
                     )
-                loss3 = 10000 * loss3
+                loss3 = 3000 * loss3
                 # loss3 = 5000 * FeaturesLoss(
                 #     gram_matrix(input_low_features),
                 #     gram_matrix(output_low_features)
