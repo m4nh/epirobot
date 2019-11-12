@@ -315,7 +315,7 @@ for epoch in range(5000):
 
             with torch.set_grad_enabled(True):
                 outputs = model(input)
-                output = output[7]
+                output = outputs[7]
 
                 reoutputs = model.encoder(output)
 
