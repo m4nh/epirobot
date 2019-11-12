@@ -314,8 +314,8 @@ for epoch in range(5000):
 
                 reoutputs = model.encoder(output)
 
-                input_features = outputs[:7]
-                output_features = reoutputs[:7]
+                input_features = outputs[:6]
+                output_features = reoutputs[:6]
 
                 # print("FEATURES", input_low_features.shape, output_low_features.shape)
 
@@ -340,7 +340,7 @@ for epoch in range(5000):
                         gram_matrix(input_features[lindex]),
                         gram_matrix(output_features[lindex])
                     )
-                loss3 = 3000 * loss3
+                loss3 = 100 * loss3
                 # loss3 = 5000 * FeaturesLoss(
                 #     gram_matrix(input_low_features),
                 #     gram_matrix(output_low_features)
