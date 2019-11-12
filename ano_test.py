@@ -355,7 +355,7 @@ for epoch in range(5000):
 
             writer.add_image('Test/input_images', torchvision.utils.make_grid(input), epoch)
             writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
-
+            break
         # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
             # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
