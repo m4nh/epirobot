@@ -282,7 +282,7 @@ dataset = AnoDataset(folder='/tmp/ano_dataset_train')
 # dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
 dataset_test = AnoDataset(folder='/tmp/ano_dataset_test', is_test=True)
 
-generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
+generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 # generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 generator_test = DataLoader(dataset_test, batch_size=16, shuffle=False, num_workers=0, drop_last=False)
 
