@@ -332,8 +332,8 @@ for epoch in range(5000):
 
                 if index == len(gen) - 1:
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
-                    writer.add_scalar('Loss/ssim', loss2, epoch)
-                    writer.add_scalar('Loss/features', loss3, epoch)
+                    # writer.add_scalar('Loss/ssim', loss2, epoch)
+                    # writer.add_scalar('Loss/features', loss3, epoch)
                     writer.add_image('Train/input_images', torchvision.utils.make_grid(input), epoch)
                     writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
 
