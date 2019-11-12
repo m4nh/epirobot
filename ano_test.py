@@ -301,8 +301,8 @@ for epoch in range(5000):
             with torch.set_grad_enabled(True):
                 input_low_features, output = model(input)
 
-                output_low_features = model.encoder(output)
-                print("FEATURES", output_low_features)
+                output_low_features,_ = model.encoder(output)
+                print("FEATURES", input_low_features.shape, output_low_features.shape)
 
                 input_r = torch.unsqueeze(input[:, 0, :, :], 1)
                 input_g = torch.unsqueeze(input[:, 1, :, :], 1)
