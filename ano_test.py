@@ -19,6 +19,7 @@ from torchvision import transforms, utils
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 
+
 class AnoDataset(Dataset):
 
     def __init__(self, folder, is_test=False, is_negative=False):
@@ -172,7 +173,7 @@ class AnoEncoder(nn.Module):
         x = self.conv7(x)
         l7 = x
         x = self.downsample7(x)
-        return l1, x
+        return l1, l2, l3, l4, l5, l6, l7, x
 
 
 class AnoNet(BaseNetwork):
@@ -218,7 +219,7 @@ class AnoNet(BaseNetwork):
         return nn.functional.interpolate(x, size=(512, 512), mode='bilinear', align_corners=True)
 
     def forward(self, x):
-        low_features, x = self.encoder(x)
+        l1, l2, l3, l4, l5, l6, l7, x = self.encoder(x)
 
         x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
         x = self.upconv7(x)
@@ -238,7 +239,7 @@ class AnoNet(BaseNetwork):
         x = self.conv_last(x)
         x = self.prediction(x)
 
-        return low_features, (x + 1.0) / 2.0
+        return l1, l2, l3, l4, l5, l6, l7, (x + 1.0) / 2.0
 
 
 def gram_matrix(input):
@@ -253,6 +254,7 @@ def gram_matrix(input):
     # we 'normalize' the values of the gram matrix
     # by dividing by the number of element in each feature maps.
     return G.div(a * b * c * d)
+
 
 # enc = AnoEncoder(3)
 # torchsummary.summary(enc, (3, 512, 512))
@@ -269,7 +271,7 @@ torchsummary.summary(model, (input_channels, 512, 512))
 for param in model.parameters():
     param.requires_grad = True
 
-#tensorboard
+# tensorboard
 writer = SummaryWriter("/tmp/runs")
 
 # OPTIMIZER
@@ -312,9 +314,14 @@ for epoch in range(5000):
             target = target.to(device)
 
             with torch.set_grad_enabled(True):
-                input_low_features, output = model(input)
+                outputs = model(input)
+                output = output[7]
 
-                output_low_features,_ = model.encoder(output)
+                reoutputs = model.encoder(output)
+
+                input_features = outputs[:7]
+                output_features = reoutputs[:7]
+
                 # print("FEATURES", input_low_features.shape, output_low_features.shape)
 
                 input_r = torch.unsqueeze(input[:, 0, :, :], 1)
@@ -332,19 +339,24 @@ for epoch in range(5000):
                 loss2_b = LossSSIM(input_b, output_b)
                 loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
-                loss3 = 5000*FeaturesLoss(
-                    gram_matrix(input_low_features),
-                    gram_matrix(output_low_features)
-                )
+                loss3 = 0.0
+                for lindex, _ in enumerate(input_features):
+                    loss3 += FeaturesLoss(
+                        gram_matrix(input_features[lindex]),
+                        gram_matrix(output_features[lindex])
+                    )
+                # loss3 = 5000 * FeaturesLoss(
+                #     gram_matrix(input_low_features),
+                #     gram_matrix(output_low_features)
+                # )
                 loss = loss1 + loss2 + loss3
 
-                if index == len(gen)-1:
+                if index == len(gen) - 1:
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
                     writer.add_scalar('Loss/ssim', loss2, epoch)
                     writer.add_scalar('Loss/features', loss3, epoch)
                     writer.add_image('Train/input_images', torchvision.utils.make_grid(input), epoch)
                     writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
-
 
                 loss.backward()
                 optimizer.step()
@@ -361,40 +373,39 @@ for epoch in range(5000):
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(generator_test):
-
             model.eval()
             input = batch['input']
             input = input.to(device)
 
-            _,output = model(input)
+            _, output = model(input)
             output = output.detach()
 
             writer.add_image('Test/input_images', torchvision.utils.make_grid(input), epoch)
             writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
             break
         # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
-            # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
+        # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
-            # print("INPUT ", input.shape)
+        # print("INPUT ", input.shape)
 
-            # img_in = input[0]
-            # img_out = output[0]
-            # img_diff = torch.abs(img_in - img_out)
-            #
-            # rgb = AnoDataset.displayableImage(img_in)
-            # out = AnoDataset.displayableImage(img_out)
-            # diff = AnoDataset.displayableImage(img_diff)
-            #
-            # map = np.vstack((rgb, out, diff))
-            #
-            # if stack is None:
-            #     stack = map
-            # else:
-            #     stack = np.hstack((stack, map))
-            #
-            # index += 1
-            # if index >= max_stack:
-            #     break
+        # img_in = input[0]
+        # img_out = output[0]
+        # img_diff = torch.abs(img_in - img_out)
+        #
+        # rgb = AnoDataset.displayableImage(img_in)
+        # out = AnoDataset.displayableImage(img_out)
+        # diff = AnoDataset.displayableImage(img_diff)
+        #
+        # map = np.vstack((rgb, out, diff))
+        #
+        # if stack is None:
+        #     stack = map
+        # else:
+        #     stack = np.hstack((stack, map))
+        #
+        # index += 1
+        # if index >= max_stack:
+        #     break
 
         cv2.imwrite("/tmp/ano_predictions.jpg", stack)
 
