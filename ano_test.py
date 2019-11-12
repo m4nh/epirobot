@@ -269,7 +269,7 @@ dataset_test = AnoDataset(folder='/tmp/ano_dataset_test', is_test=True)
 
 generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 # generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
-generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=0, drop_last=False)
+generator_test = DataLoader(dataset_test, batch_size=16, shuffle=False, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
 model.loadModel()
@@ -302,7 +302,7 @@ for epoch in range(5000):
                 input_low_features, output = model(input)
 
                 output_low_features,_ = model.encoder(output)
-                print("FEATURES", input_low_features.shape, output_low_features.shape)
+                # print("FEATURES", input_low_features.shape, output_low_features.shape)
 
                 input_r = torch.unsqueeze(input[:, 0, :, :], 1)
                 input_g = torch.unsqueeze(input[:, 1, :, :], 1)
@@ -326,8 +326,8 @@ for epoch in range(5000):
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
                     writer.add_scalar('Loss/ssim', loss2, epoch)
                     writer.add_scalar('Loss/features', loss3, epoch)
-                    grid = torchvision.utils.make_grid(input)
-                    writer.add_image('input_images', grid, epoch)
+                    writer.add_image('Train/input_images', torchvision.utils.make_grid(input), epoch)
+                    writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
 
 
                 loss.backward()
@@ -350,32 +350,35 @@ for epoch in range(5000):
             input = batch['input']
             input = input.to(device)
 
-            output = model(input)
+            _,output = model(input)
             output = output.detach()
 
-            # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
+            writer.add_image('Test/input_images', torchvision.utils.make_grid(input), epoch)
+            writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
+
+        # print("TG", target[0].shape, np.min(target[0].cpu().numpy()), np.max(target[0].cpu().numpy()))
             # print("OPUT", output[0].shape, np.min(output[0].cpu().numpy()), np.max(output[0].cpu().numpy()))
 
             # print("INPUT ", input.shape)
 
-            img_in = input[0]
-            img_out = output[0]
-            img_diff = torch.abs(img_in - img_out)
-
-            rgb = AnoDataset.displayableImage(img_in)
-            out = AnoDataset.displayableImage(img_out)
-            diff = AnoDataset.displayableImage(img_diff)
-
-            map = np.vstack((rgb, out, diff))
-
-            if stack is None:
-                stack = map
-            else:
-                stack = np.hstack((stack, map))
-
-            index += 1
-            if index >= max_stack:
-                break
+            # img_in = input[0]
+            # img_out = output[0]
+            # img_diff = torch.abs(img_in - img_out)
+            #
+            # rgb = AnoDataset.displayableImage(img_in)
+            # out = AnoDataset.displayableImage(img_out)
+            # diff = AnoDataset.displayableImage(img_diff)
+            #
+            # map = np.vstack((rgb, out, diff))
+            #
+            # if stack is None:
+            #     stack = map
+            # else:
+            #     stack = np.hstack((stack, map))
+            #
+            # index += 1
+            # if index >= max_stack:
+            #     break
 
         cv2.imwrite("/tmp/ano_predictions.jpg", stack)
 
