@@ -241,13 +241,26 @@ class AnoNet(BaseNetwork):
         return low_features, (x + 1.0) / 2.0
 
 
+def gram_matrix(input):
+    a, b, c, d = input.size()  # a=batch size(=1)
+    # b=number of feature maps
+    # (c,d)=dimensions of a f. map (N=c*d)
+
+    features = input.view(a * b, c * d)  # resise F_XL into \hat F_XL
+
+    G = torch.mm(features, features.t())  # compute the gram product
+
+    # we 'normalize' the values of the gram matrix
+    # by dividing by the number of element in each feature maps.
+    return G.div(a * b * c * d)
+
 # enc = AnoEncoder(3)
 # torchsummary.summary(enc, (3, 512, 512))
 # import sys
 # sys.exit(0)
 
 input_channels = 3
-model = AnoNet(name='anonet_low', input_channels=input_channels, checkpoints_path='/tmp')
+model = AnoNet(name='anonet_style', input_channels=input_channels, checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
@@ -319,7 +332,10 @@ for epoch in range(5000):
                 loss2_b = LossSSIM(input_b, output_b)
                 loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
-                loss3 = FeaturesLoss(input_low_features, output_low_features)
+                loss3 = FeaturesLoss(
+                    gram_matrix(input_low_features),
+                    gram_matrix(output_low_features)
+                )
                 loss = loss1 + loss2 + loss3
 
                 if index == len(gen)-1:
