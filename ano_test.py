@@ -332,7 +332,7 @@ for epoch in range(5000):
                 loss2_b = LossSSIM(input_b, output_b)
                 loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
-                loss3 = FeaturesLoss(
+                loss3 = 5000*FeaturesLoss(
                     gram_matrix(input_low_features),
                     gram_matrix(output_low_features)
                 )
