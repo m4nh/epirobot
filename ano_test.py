@@ -377,8 +377,8 @@ for epoch in range(5000):
             input = batch['input']
             input = input.to(device)
 
-            _, output = model(input)
-            output = output.detach()
+            outputs = model(input)
+            output = outputs[7].detach()
 
             writer.add_image('Test/input_images', torchvision.utils.make_grid(input), epoch)
             writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
