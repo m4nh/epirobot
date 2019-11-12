@@ -152,6 +152,7 @@ class AnoEncoder(nn.Module):
     def forward(self, x, full_output=False):
         x = self.conv1(x)
         l1 = x
+        print("L!",l1.shape)
         x = self.downsample1(x)
         x = self.conv2(x)
         l2 = x
