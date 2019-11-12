@@ -16,7 +16,8 @@ from torch.autograd import Variable
 from math import exp
 from kornia.losses import SSIM
 from torchvision import transforms, utils
-
+from torch.utils.tensorboard import SummaryWriter
+import torchvision
 
 class AnoDataset(Dataset):
 
@@ -113,11 +114,10 @@ def class_for_name(module_name, class_name):
     return getattr(m, class_name)
 
 
-class AnoNet(BaseNetwork):
+class AnoEncoder(nn.Module):
 
-    def __init__(self, name, input_channels, checkpoints_path):
-        super(AnoNet, self).__init__(name=name, checkpoints_path=checkpoints_path)
-
+    def __init__(self, input_channels):
+        super(AnoEncoder, self).__init__()
         self.input_channels = input_channels
 
         channels = 32
@@ -148,6 +148,42 @@ class AnoNet(BaseNetwork):
         self.conv7 = nn.Conv2d(int(channels / 2), channels, 3, 1,
                                1)  # conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
         self.downsample7 = nn.MaxPool2d(2)
+
+    def forward(self, x, full_output=False):
+        x = self.conv1(x)
+        l1 = x
+        x = self.downsample1(x)
+        x = self.conv2(x)
+        l2 = x
+        x = self.downsample2(x)
+        x = self.conv3(x)
+        l3 = x
+        x = self.downsample3(x)
+        x = self.conv4(x)
+        l4 = x
+        x = self.downsample4(x)
+        x = self.conv5(x)
+        l5 = x
+        x = self.downsample5(x)
+        x = self.conv6(x)
+        l6 = x
+        x = self.downsample6(x)
+        x = self.conv7(x)
+        l7 = x
+        x = self.downsample7(x)
+        return l1, x
+
+
+class AnoNet(BaseNetwork):
+
+    def __init__(self, name, input_channels, checkpoints_path):
+        super(AnoNet, self).__init__(name=name, checkpoints_path=checkpoints_path)
+
+        self.input_channels = input_channels
+
+        channels = 2048
+
+        self.encoder = AnoEncoder(input_channels)
 
         channels /= 2
         self.upconv7 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
@@ -181,20 +217,7 @@ class AnoNet(BaseNetwork):
         return nn.functional.interpolate(x, size=(512, 512), mode='bilinear', align_corners=True)
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.downsample1(x)
-        x = self.conv2(x)
-        x = self.downsample2(x)
-        x = self.conv3(x)
-        x = self.downsample3(x)
-        x = self.conv4(x)
-        x = self.downsample4(x)
-        x = self.conv5(x)
-        x = self.downsample5(x)
-        x = self.conv6(x)
-        x = self.downsample6(x)
-        x = self.conv7(x)
-        x = self.downsample7(x)
+        low_features, x = self.encoder(x)
 
         x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
         x = self.upconv7(x)
@@ -214,11 +237,16 @@ class AnoNet(BaseNetwork):
         x = self.conv_last(x)
         x = self.prediction(x)
 
-        return (x + 1.0) / 2.0
+        return low_features, (x + 1.0) / 2.0
 
+
+# enc = AnoEncoder(3)
+# torchsummary.summary(enc, (3, 512, 512))
+# import sys
+# sys.exit(0)
 
 input_channels = 3
-model = AnoNet(name='anonet_l1ssim_huge', input_channels=input_channels, checkpoints_path='/tmp')
+model = AnoNet(name='anonet_low', input_channels=input_channels, checkpoints_path='/tmp')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
@@ -226,6 +254,9 @@ model = model.to(device)
 torchsummary.summary(model, (input_channels, 512, 512))
 for param in model.parameters():
     param.requires_grad = True
+
+#tensorboard
+writer = SummaryWriter("/tmp/runs")
 
 # OPTIMIZER
 lr = 0.001
@@ -243,6 +274,7 @@ generator_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_worke
 model.loadModel()
 
 LossL1 = nn.L1Loss()  # SSIM(11, reduction='mean')
+FeaturesLoss = nn.L1Loss()
 LossSSIM = SSIM(5, reduction='mean')
 
 for epoch in range(5000):
@@ -266,7 +298,10 @@ for epoch in range(5000):
             target = target.to(device)
 
             with torch.set_grad_enabled(True):
-                output = model(input)
+                input_low_features, output = model(input)
+
+                output_low_features = model.encoder(output)
+
 
                 input_r = torch.unsqueeze(input[:, 0, :, :], 1)
                 input_g = torch.unsqueeze(input[:, 1, :, :], 1)
@@ -283,7 +318,16 @@ for epoch in range(5000):
                 loss2_b = LossSSIM(input_b, output_b)
                 loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
-                loss = loss1 + loss2
+                loss3 = FeaturesLoss(input_low_features, output_low_features)
+                loss = loss1 + loss2 + loss3
+
+                if index == len(gen)-1:
+                    writer.add_scalar('Loss/reconstruction', loss1, epoch)
+                    writer.add_scalar('Loss/ssim', loss2, epoch)
+                    writer.add_scalar('Loss/features', loss3, epoch)
+                    grid = torchvision.utils.make_grid(input)
+                    writer.add_image('input_images', grid, epoch)
+
 
                 loss.backward()
                 optimizer.step()
@@ -334,5 +378,4 @@ for epoch in range(5000):
 
         cv2.imwrite("/tmp/ano_predictions.jpg", stack)
 
-for d in generator:
-    print(d.shape)
+writer.close()
