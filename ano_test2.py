@@ -257,7 +257,7 @@ def gram_matrix(input):
 
 image_resize = 256
 input_channels = 3
-model = ElasticAE('elasticae', image_resize, input_channels=input_channels, output_channels=3, latent_size=500,
+model = ElasticAE('elasticae', image_resize, input_channels=input_channels, output_channels=input_channels, latent_size=500,
                   layers=4,
                   initial_filters=16, checkpoints_path='/tmp')
 

@@ -69,7 +69,7 @@ class UnFlatten(nn.Module):
 
 class ElasticEncoder(nn.Module):
 
-    def __init__(self, name, input_size, input_channels, latent_size=1000, n_layers=4, initial_filters=16,
+    def __init__(self, input_size, input_channels, latent_size=1000, n_layers=4, initial_filters=16,
                  layers_mult=2):
         super(ElasticEncoder, self).__init__()
         self.input_size = input_size
@@ -146,5 +146,5 @@ class ElasticAE(BaseNetwork):
 # model = ElasticEncoder(256, 3)
 # torchsummary.summary(model, (3, 256, 256))
 
-# model = ElasticAE(256, 3, 3, 500, 4, 16)
+# model = ElasticAE("miao",256, 3, 3, 500, 4, 16)
 # torchsummary.summary(model, (3, 256, 256))
