@@ -345,6 +345,7 @@ for epoch in range(5000):
                         gram_matrix(input_features[lindex]),
                         gram_matrix(output_features[lindex])
                     )
+                loss3 = 10000 * loss3
                 # loss3 = 5000 * FeaturesLoss(
                 #     gram_matrix(input_low_features),
                 #     gram_matrix(output_low_features)
