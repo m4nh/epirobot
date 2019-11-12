@@ -152,7 +152,7 @@ class AnoEncoder(nn.Module):
     def forward(self, x, full_output=False):
         x = self.conv1(x)
         l1 = x
-        print("L!",l1.shape)
+
         x = self.downsample1(x)
         x = self.conv2(x)
         l2 = x
@@ -302,7 +302,7 @@ for epoch in range(5000):
                 input_low_features, output = model(input)
 
                 output_low_features = model.encoder(output)
-                print("FEATURES", input_low_features.shape, output_low_features.shape)
+                print("FEATURES", input_low_features.shape, output.shape)
 
                 input_r = torch.unsqueeze(input[:, 0, :, :], 1)
                 input_g = torch.unsqueeze(input[:, 1, :, :], 1)
