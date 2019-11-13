@@ -34,7 +34,7 @@ class AnoDataset(Dataset):
                     transforms.ToPILImage(),
                     transforms.Resize((resize, resize)),
                     # transforms.Grayscale(),
-                    transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
+                    # transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
                     transforms.ToTensor()
                 ]
             )
