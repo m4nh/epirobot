@@ -259,7 +259,7 @@ image_resize = 256
 input_channels = 3
 model = ElasticAE('elasticae', image_resize, input_channels=input_channels, output_channels=input_channels, latent_size=500,
                   layers=4,
-                  initial_filters=16, checkpoints_path='/tmp')
+                  initial_filters=16, checkpoints_path='/tmp/anomaleye/')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 print("DEVICE:", device)
@@ -269,15 +269,15 @@ for param in model.parameters():
     param.requires_grad = True
 
 # tensorboard
-writer = SummaryWriter("/tmp/runs")
+writer = SummaryWriter("/tmp/anomaleye/runs")
 
 # OPTIMIZER
 lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
-dataset = AnoDataset(folder='/tmp/ano_dataset_train', resize=image_resize)
+dataset = AnoDataset(folder='/tmp/anomaleye/dataset/train', resize=image_resize)
 # dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
-dataset_test = AnoDataset(folder='/tmp/ano_dataset_test', is_test=True, resize=image_resize)
+dataset_test = AnoDataset(folder='/tmp/anomaleye/dataset/test', is_test=True, resize=image_resize)
 
 generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 # generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
