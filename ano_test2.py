@@ -159,22 +159,22 @@ for epoch in range(5000):
             with torch.set_grad_enabled(True):
                 output = model(input)
 
-                # input_r = torch.unsqueeze(input[:, 0, :, :], 1)
-                # input_g = torch.unsqueeze(input[:, 1, :, :], 1)
-                # input_b = torch.unsqueeze(input[:, 2, :, :], 1)
-                #
-                # output_r = torch.unsqueeze(output[:, 0, :, :], 1)
-                # output_g = torch.unsqueeze(output[:, 1, :, :], 1)
-                # output_b = torch.unsqueeze(output[:, 2, :, :], 1)
+                input_r = torch.unsqueeze(input[:, 0, :, :], 1)
+                input_g = torch.unsqueeze(input[:, 1, :, :], 1)
+                input_b = torch.unsqueeze(input[:, 2, :, :], 1)
+
+                output_r = torch.unsqueeze(output[:, 0, :, :], 1)
+                output_g = torch.unsqueeze(output[:, 1, :, :], 1)
+                output_b = torch.unsqueeze(output[:, 2, :, :], 1)
 
                 loss1 = LossL1(input, output)
 
-                # loss2_r = LossSSIM(input_r, output_r)
-                # loss2_g = LossSSIM(input_g, output_g)
-                # loss2_b = LossSSIM(input_b, output_b)
-                # loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
+                loss2_r = LossSSIM(input_r, output_r)
+                loss2_g = LossSSIM(input_g, output_g)
+                loss2_b = LossSSIM(input_b, output_b)
+                loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
-                loss = loss1  # + loss2 + loss3
+                loss = loss1 + loss2 # + loss3
 
                 if index == len(gen) - 1 and epoch % 5 == 0:
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
@@ -183,12 +183,13 @@ for epoch in range(5000):
                     writer.add_image('Train/input_images', torchvision.utils.make_grid(input), epoch)
                     writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
 
+
                 loss.backward()
                 optimizer.step()
 
                 print("Batch: {}/{}".format(index, len(generator)))
 
-    if epoch % 5 == 0:
+    if True:#epoch % 5 == 0:
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(generator_test):
@@ -196,10 +197,15 @@ for epoch in range(5000):
             input = batch['input']
             input = input.to(device)
 
-            output = model(input).detach()
+            output = model(input)
+
+            diff = (torch.abs(input - output) + 1.0) / 2.0
+
+            output = output.detach()
 
             writer.add_image('Test/input_images', torchvision.utils.make_grid(input), epoch)
             writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
+            writer.add_image('Test/differences', torchvision.utils.make_grid(diff), epoch)
             break
 
 writer.close()
