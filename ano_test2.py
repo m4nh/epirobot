@@ -19,7 +19,7 @@ from torchvision import transforms, utils
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 from anomaleye import ElasticAE
-
+import argparse
 
 class AnoDataset(Dataset):
 
@@ -34,7 +34,7 @@ class AnoDataset(Dataset):
                     transforms.ToPILImage(),
                     transforms.Resize((resize, resize)),
                     # transforms.Grayscale(),
-                    # transforms.RandomAffine(180, (0.02, 0.02), fillcolor=9),
+                    transforms.RandomAffine(5, (0.05, 0.05), fillcolor=9),
                     transforms.ToTensor()
                 ]
             )
@@ -75,167 +75,6 @@ class AnoDataset(Dataset):
         }
 
 
-class conv2DBatchNormRelu(nn.Module):
-    def __init__(
-            self,
-            in_channels,
-            n_filters,
-            k_size,
-            stride,
-            padding,
-            bias=True,
-            dilation=1,
-            with_bn=False,
-    ):
-        super(conv2DBatchNormRelu, self).__init__()
-
-        conv_mod = nn.Conv2d(int(in_channels),
-                             int(n_filters),
-                             kernel_size=k_size,
-                             padding=padding,
-                             stride=stride,
-                             bias=bias,
-                             dilation=dilation, )
-
-        if with_bn:
-            self.cbr_unit = nn.Sequential(conv_mod,
-                                          nn.BatchNorm2d(int(n_filters)),
-                                          nn.LeakyReLU(inplace=True))
-        else:
-            self.cbr_unit = nn.Sequential(conv_mod, nn.LeakyReLU(inplace=True))
-
-    def forward(self, inputs):
-        outputs = self.cbr_unit(inputs)
-        return outputs
-
-
-def class_for_name(module_name, class_name):
-    # load the module, will raise ImportError if module cannot be loaded
-    m = importlib.import_module(module_name)
-    # get the class, will raise AttributeError if class cannot be found
-    return getattr(m, class_name)
-
-
-class AnoEncoder(nn.Module):
-
-    def __init__(self, input_channels):
-        super(AnoEncoder, self).__init__()
-        self.input_channels = input_channels
-
-        channels = 32
-        self.conv1 = conv2DBatchNormRelu(self.input_channels, channels, 3, 1, 1)
-        self.downsample1 = nn.MaxPool2d(2)
-
-        channels *= 2
-        self.conv2 = conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
-        self.downsample2 = nn.MaxPool2d(2)
-
-        channels *= 2
-        self.conv3 = conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
-        self.downsample3 = nn.MaxPool2d(2)
-
-        channels *= 2
-        self.conv4 = conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
-        self.downsample4 = nn.MaxPool2d(2)
-
-        channels *= 2
-        self.conv5 = conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
-        self.downsample5 = nn.MaxPool2d(2)
-
-        channels *= 2
-        self.conv6 = conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
-        self.downsample6 = nn.MaxPool2d(2)
-
-        channels *= 2
-        self.conv7 = nn.Conv2d(int(channels / 2), channels, 3, 1,
-                               1)  # conv2DBatchNormRelu(channels / 2, channels, 3, 1, 1)
-        self.downsample7 = nn.MaxPool2d(2)
-
-    def forward(self, x, full_output=False):
-        x = self.conv1(x)
-        l1 = x
-
-        x = self.downsample1(x)
-        x = self.conv2(x)
-        l2 = x
-        x = self.downsample2(x)
-        x = self.conv3(x)
-        l3 = x
-        x = self.downsample3(x)
-        x = self.conv4(x)
-        l4 = x
-        x = self.downsample4(x)
-        x = self.conv5(x)
-        l5 = x
-        x = self.downsample5(x)
-        x = self.conv6(x)
-        l6 = x
-        x = self.downsample6(x)
-        x = self.conv7(x)
-        l7 = x
-        x = self.downsample7(x)
-        return l1, l2, l3, l4, l5, l6, l7, x
-
-
-class AnoNet(BaseNetwork):
-
-    def __init__(self, name, input_channels, checkpoints_path):
-        super(AnoNet, self).__init__(name=name, checkpoints_path=checkpoints_path)
-
-        self.input_channels = input_channels
-
-        channels = 2048
-
-        self.encoder = AnoEncoder(input_channels)
-
-        channels /= 2
-        self.upconv7 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        channels /= 2
-        self.upconv6 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        channels /= 2
-        self.upconv5 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        channels /= 2
-        self.upconv4 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        channels /= 2
-        self.upconv3 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        channels /= 2
-        self.upconv2 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        channels /= 2
-        self.upconv1 = conv2DBatchNormRelu(channels * 2, channels, 3, 1, 1)
-
-        self.conv_last = nn.Conv2d(int(channels), self.input_channels, 3, 1, 1)
-        self.prediction = nn.Tanh()
-
-    def forward(self, x):
-        l1, l2, l3, l4, l5, l6, l7, x = self.encoder(x)
-
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv7(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv6(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv5(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv4(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv3(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv2(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-        x = self.upconv1(x)
-
-        x = self.conv_last(x)
-        x = self.prediction(x)
-
-        return l1, l2, l3, l4, l5, l6, l7, (x + 1.0) / 2.0
-
-
 def gram_matrix(input):
     a, b, c, d = input.size()  # a=batch size(=1)
     # b=number of feature maps
@@ -250,14 +89,14 @@ def gram_matrix(input):
     return G.div(a * b * c * d)
 
 
-# enc = AnoEncoder(3)
-# torchsummary.summary(enc, (3, 512, 512))
-# import sys
-# sys.exit(0)
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--name", default="anomaleye_net", type=str)
+args = parser.parse_args()
 
 image_resize = 256
 input_channels = 3
-model = ElasticAE('elasticae', image_resize, input_channels=input_channels, output_channels=input_channels, latent_size=500,
+model = ElasticAE(args.name, image_resize, input_channels=input_channels, output_channels=input_channels, latent_size=500,
                   layers=4,
                   initial_filters=16, checkpoints_path='/tmp/anomaleye/')
 
@@ -276,6 +115,12 @@ lr = 0.001
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 dataset = AnoDataset(folder='/tmp/anomaleye/dataset/train', resize=image_resize)
+
+# for d in dataset:
+#     img = d['input']
+#     img = dataset.displayableImage(img)
+#     cv2.imshow("image",img)
+#     cv2.waitKey(0)
 # dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
 dataset_test = AnoDataset(folder='/tmp/anomaleye/dataset/test', is_test=True, resize=image_resize)
 
