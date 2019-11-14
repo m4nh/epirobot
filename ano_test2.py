@@ -21,6 +21,7 @@ import torchvision
 from anomaleye import ElasticAE
 import argparse
 
+
 class AnoDataset(Dataset):
 
     def __init__(self, folder, is_test=False, is_negative=False, resize=256):
@@ -89,14 +90,14 @@ def gram_matrix(input):
     return G.div(a * b * c * d)
 
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", default="anomaleye_net", type=str)
 args = parser.parse_args()
 
 image_resize = 256
 input_channels = 3
-model = ElasticAE(args.name, image_resize, input_channels=input_channels, output_channels=input_channels, latent_size=500,
+model = ElasticAE(args.name, image_resize, input_channels=input_channels, output_channels=input_channels,
+                  latent_size=500,
                   layers=4,
                   initial_filters=16, checkpoints_path='/tmp/anomaleye/')
 
@@ -175,7 +176,7 @@ for epoch in range(5000):
 
                 loss = loss1  # + loss2 + loss3
 
-                if index == len(gen) - 1 and epoch % 10 == 0:
+                if index == len(gen) - 1 and epoch % 5 == 0:
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
                     # writer.add_scalar('Loss/ssim', loss2, epoch)
                     # writer.add_scalar('Loss/features', loss3, epoch)
@@ -187,7 +188,7 @@ for epoch in range(5000):
 
                 print("Batch: {}/{}".format(index, len(generator)))
 
-    if True:
+    if epoch % 5 == 0:
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(generator_test):
