@@ -191,7 +191,7 @@ for epoch in range(5000):
 
                 print("Batch: {}/{}".format(index, len(generator)))
 
-    if True:#epoch % 5 == 0:
+    if epoch % 5 == 0:
         print("∞" * 20)
         print("TEST " * 20)
         for index, batch in enumerate(generator_test):
@@ -201,7 +201,7 @@ for epoch in range(5000):
 
             output = model(input)
 
-            diff = (torch.abs(input - output) + 1.0) / 2.0
+            diff = torch.abs(input - output) 
 
             output = output.detach()
 
