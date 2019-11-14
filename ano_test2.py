@@ -125,7 +125,7 @@ dataset = AnoDataset(folder='/tmp/anomaleye/dataset/train', resize=image_resize)
 # dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
 dataset_test = AnoDataset(folder='/tmp/anomaleye/dataset/test', is_test=True, resize=image_resize)
 
-generator = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
+generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 # generator_neg = DataLoader(dataset_neg, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
 generator_test = DataLoader(dataset_test, batch_size=8, shuffle=False, num_workers=0, drop_last=False)
 
@@ -173,6 +173,8 @@ for epoch in range(5000):
                 loss2_g = LossSSIM(input_g, output_g)
                 loss2_b = LossSSIM(input_b, output_b)
                 loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
+
+
 
                 loss = loss1 + loss2 # + loss3
 
