@@ -175,7 +175,7 @@ for epoch in range(5000):
 
                 loss = loss1  # + loss2 + loss3
 
-                if index == len(gen) - 1:
+                if index == len(gen) - 1 and epoch % 10 == 0:
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
                     # writer.add_scalar('Loss/ssim', loss2, epoch)
                     # writer.add_scalar('Loss/features', loss3, epoch)
