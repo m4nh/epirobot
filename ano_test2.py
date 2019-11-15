@@ -109,7 +109,7 @@ for param in model.parameters():
     param.requires_grad = True
 
 # tensorboard
-writer = SummaryWriter("/tmp/anomaleye/runs")
+writer = SummaryWriter(os.path.join("/tmp/anomaleye/runs", args.name))
 
 # OPTIMIZER
 lr = 0.001
@@ -174,9 +174,7 @@ for epoch in range(5000):
                 loss2_b = LossSSIM(input_b, output_b)
                 loss2 = 0.3 * loss2_b + 0.3 * loss2_g + 0.3 * loss2_r
 
-
-
-                loss = loss1 + loss2 # + loss3
+                loss = loss1 + loss2  # + loss3
 
                 if index == len(gen) - 1 and epoch % 5 == 0:
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
@@ -184,7 +182,6 @@ for epoch in range(5000):
                     # writer.add_scalar('Loss/features', loss3, epoch)
                     writer.add_image('Train/input_images', torchvision.utils.make_grid(input), epoch)
                     writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
-
 
                 loss.backward()
                 optimizer.step()
