@@ -89,14 +89,14 @@ class CmpDataset0(Dataset):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--name", default="anomaleye_net", type=str)
+parser.add_argument("--name", default="anomaleye_6_100_net", type=str)
 args = parser.parse_args()
 
 image_resize = 256
 input_channels = 3
 model = ElasticAE(args.name, image_resize, input_channels=input_channels, output_channels=input_channels,
-                  latent_size=500,
-                  layers=4,
+                  latent_size=100,
+                  layers=6,
                   initial_filters=16, checkpoints_path='/tmp/anomaleye/')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
