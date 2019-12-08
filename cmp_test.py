@@ -132,7 +132,7 @@ dataset_test = CmpDataset0(folder='/tmp/test', crop=[500, 600, crop_w, crop_w], 
 # dataset_neg = AnoDataset(folder='/tmp/ano_dataset_train_neg', is_negative=True)
 
 
-generator = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=False)
+generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
 generator_test = DataLoader(dataset_test, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
