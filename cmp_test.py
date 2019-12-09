@@ -92,11 +92,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--name", default="anomaleye_2_32_32_net", type=str)
 args = parser.parse_args()
 
+test_batch_size = 8
 image_resize = 256
 input_channels = 3
 model = ElasticAE(args.name, image_resize, input_channels=input_channels, output_channels=input_channels,
-                  latent_size=32,
-                  layers=2,
+                  latent_size=1000,
+                  layers=4,
                   initial_filters=32, checkpoints_path='/tmp/anomaleye/')
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -133,7 +134,7 @@ dataset_test = CmpDataset0(folder='/tmp/test', crop=[500, 600, crop_w, crop_w], 
 
 
 generator = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0, drop_last=False)
-generator_test = DataLoader(dataset_test, batch_size=8, shuffle=True, num_workers=0, drop_last=False)
+generator_test = DataLoader(dataset_test, batch_size=test_batch_size, shuffle=True, num_workers=0, drop_last=False)
 
 # LOAD MODEL IF ANY
 model.loadModel()
@@ -187,8 +188,14 @@ for epoch in range(105):
                     writer.add_scalar('Loss/reconstruction', loss1, epoch)
                     writer.add_scalar('Loss/ssim', loss2, epoch)
                     # writer.add_scalar('Loss/features', loss3, epoch)
-                    writer.add_image('Train/input_images', torchvision.utils.make_grid(input), epoch)
-                    writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
+
+                    x = input[:test_batch_size, ::]
+                    y = output[:test_batch_size, ::]
+                    d = torch.abs(x - y)
+                    grid = torch.cat((x, y, d), 3)
+
+                    writer.add_image('Train/input_images', torchvision.utils.make_grid(grid), epoch)
+                    # writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
 
                 loss.backward()
                 optimizer.step()
