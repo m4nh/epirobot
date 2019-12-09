@@ -194,7 +194,7 @@ for epoch in range(105):
                     d = torch.abs(x - y)
                     grid = torch.cat((x, y, d), 3)
 
-                    writer.add_image('Train/input_images', torchvision.utils.make_grid(grid), epoch)
+                    writer.add_image('Train/input_images', torchvision.utils.make_grid(grid,nrow=test_batch_size), epoch)
                     # writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
 
                 loss.backward()
@@ -213,12 +213,13 @@ for epoch in range(105):
             output = model(input)
 
             diff = torch.abs(input - output)
-
             output = output.detach()
 
-            writer.add_image('Test/input_images', torchvision.utils.make_grid(input), epoch)
-            writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
-            writer.add_image('Test/differences', torchvision.utils.make_grid(diff), epoch)
+            grid = torch.cat((input, output, diff), 3)
+
+            writer.add_image('Test/input_images', torchvision.utils.make_grid(grid, nrow=test_batch_size), epoch)
+            # writer.add_image('Test/reconstructed_images', torchvision.utils.make_grid(output), epoch)
+            # writer.add_image('Test/differences', torchvision.utils.make_grid(diff), epoch)
             break
 
 writer.close()
