@@ -89,13 +89,13 @@ class CmpDataset0(Dataset):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--name", default="anomaleye_6_100_net", type=str)
+parser.add_argument("--name", default="anomaleye_6_1000_net", type=str)
 args = parser.parse_args()
 
 image_resize = 256
 input_channels = 3
 model = ElasticAE(args.name, image_resize, input_channels=input_channels, output_channels=input_channels,
-                  latent_size=100,
+                  latent_size=1000,
                   layers=6,
                   initial_filters=16, checkpoints_path='/tmp/anomaleye/')
 
@@ -142,7 +142,7 @@ LossL1 = nn.L1Loss()  # SSIM(11, reduction='mean')
 FeaturesLoss = nn.L1Loss()
 LossSSIM = SSIM(5, reduction='mean')
 
-for epoch in range(5000):
+for epoch in range(105):
 
     print("EPOCH", epoch)
 
