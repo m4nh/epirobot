@@ -143,7 +143,7 @@ LossL1 = nn.L1Loss()  # SSIM(11, reduction='mean')
 FeaturesLoss = nn.L1Loss()
 LossSSIM = SSIM(5, reduction='mean')
 
-for epoch in range(105):
+for epoch in range(101,505):
 
     print("EPOCH", epoch)
 
@@ -194,7 +194,7 @@ for epoch in range(105):
                     d = torch.abs(x - y)
                     grid = torch.cat((x, y, d), 3)
 
-                    writer.add_image('Train/input_images', torchvision.utils.make_grid(grid,nrow=test_batch_size), epoch)
+                    writer.add_image('Train/input_images', torchvision.utils.make_grid(grid, nrow=test_batch_size), epoch)
                     # writer.add_image('Train/reconstructed_images', torchvision.utils.make_grid(output), epoch)
 
                 loss.backward()
