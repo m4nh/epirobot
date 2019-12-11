@@ -43,9 +43,10 @@ pinhole_src = tgm.PinholeCamera(intrinsics=cam0, extrinsics=T0, height=img_h, wi
 print(pinhole_src)
 
 depth_src = torch.nn.Parameter(torch.ones(1, 1, h, w))
-torch.nn.init.uniform_(depth_src)
+torch.nn.init.uniform_(depth_src,)
 depth_src.requires_grad = True
-optimizer = torch.optim.Adam([depth_src], lr=0.1)
+# optimizer = torch.optim.Adam([depth_src], lr=0.1)
+optimizer = torch.optim.SGD([depth_src], lr=0.1)
 L1 = torch.nn.L1Loss()
 
 warper = tgm.DepthWarper(pinhole_dst, h, w)
